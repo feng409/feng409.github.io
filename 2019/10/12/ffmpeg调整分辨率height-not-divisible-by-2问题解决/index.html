@@ -3,16 +3,19 @@
 <head><meta name="generator" content="Hexo 3.8.0">
   <meta charset="utf-8">
   
-  <title>chemf</title>
+  <title>ffmpeg调整分辨率height not divisible by 2问题解决 | chemf</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta property="og:type" content="website">
-<meta property="og:title" content="chemf">
-<meta property="og:url" content="http://eoyohe.cn/about/index.html">
+  <meta name="description" content="问题调整视频分辨率时候，以下命令 ffmpeg -i a.mp4 -y -c:v libx264 -movflags +faststart -vf scale=640:-1 -c:a copy b.mp4   -i 表示输入视频 -y 不询问，默认执行 -c:v libx264 指定编解码器为 x264 -movflags +faststart 输出为 fragment MP4  -vf 使用视频">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ffmpeg调整分辨率height not divisible by 2问题解决">
+<meta property="og:url" content="http://eoyohe.cn/2019/10/12/ffmpeg调整分辨率height-not-divisible-by-2问题解决/index.html">
 <meta property="og:site_name" content="chemf">
+<meta property="og:description" content="问题调整视频分辨率时候，以下命令 ffmpeg -i a.mp4 -y -c:v libx264 -movflags +faststart -vf scale=640:-1 -c:a copy b.mp4   -i 表示输入视频 -y 不询问，默认执行 -c:v libx264 指定编解码器为 x264 -movflags +faststart 输出为 fragment MP4  -vf 使用视频">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2018-11-30T01:13:43.000Z">
+<meta property="og:updated_time" content="2020-08-26T02:52:35.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="chemf">
+<meta name="twitter:title" content="ffmpeg调整分辨率height not divisible by 2问题解决">
+<meta name="twitter:description" content="问题调整视频分辨率时候，以下命令 ffmpeg -i a.mp4 -y -c:v libx264 -movflags +faststart -vf scale=640:-1 -c:a copy b.mp4   -i 表示输入视频 -y 不询问，默认执行 -c:v libx264 指定编解码器为 x264 -movflags +faststart 输出为 fragment MP4  -vf 使用视频">
   
     <link rel="alternative" href="/atom.xml" title="chemf" type="application/atom+xml">
   
@@ -38,7 +41,7 @@
           fancybox: true,
           animate: true,
           isHome: false,
-          isPost: false,
+          isPost: true,
           isArchive: false,
           isTag: false,
           isCategory: false,
@@ -226,11 +229,11 @@
         </header>                
     </div>
 </nav>
-      <div class="body-wrap"><article id="page-undefined" class="article article-type-page" itemscope="" itemprop="blogPost">
+      <div class="body-wrap"><article id="post-ffmpeg调整分辨率height-not-divisible-by-2问题解决" class="article article-type-post" itemscope="" itemprop="blogPost">
   
     <div class="article-meta">
-      <a href="/about/index.html" class="article-date">
-      <time datetime="2017-08-06T08:05:24.000Z" itemprop="datePublished">2017-08-06</time>
+      <a href="/2019/10/12/ffmpeg调整分辨率height-not-divisible-by-2问题解决/" class="article-date">
+      <time datetime="2019-10-12T01:56:36.000Z" itemprop="datePublished">2019-10-12</time>
 </a>
     </div>
   
@@ -239,45 +242,90 @@
       <input type="hidden" class="isFancy">
     
     
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      ffmpeg调整分辨率height not divisible by 2问题解决
+    </h1>
+  
+
+      </header>
+      
+      <div class="article-info article-info-post">
+        
+
+        
+        <div class="clearfix"></div>
+      </div>
+      
+    
     <div class="article-entry" itemprop="articleBody">
       
           
-              <style>
-    .article-meta {
-        display: none;
-    }
-    #container .article .article-title {
-        padding-right: 0;
-    }
-    .article-header {
-        padding: 0;
-        padding-top: 26px;
-        border-left: none;
-        text-align: center;
-    }
-    .article-header:hover {
-        border-left: none;
-    }
-    .article-title {
-        font-size: 1.6em
-    }
-    .article-meta {
-        display: none;
-    }
-    .article-entry hr {
-        margin: 0;
-    }
-    #container .article-info-post.article-info {
-      display: none;
-      }
-    #container .article .article-title {
-    padding: 0;
-    }
-</style>
-
-
-          
-        <iframe frameborder="no" border="0" marginwidth="0" marginheight="0" width="330" height="450" src="//music.163.com/outchain/player?type=0&amp;id=429849712&amp;auto=1&amp;height=430" style="width: 100%; height: 100%; position: absolute; top: 0px; left: 0px;"></iframe>
+        <h2 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h2><p>调整视频分辨率时候，以下命令</p>
+<pre><code class="shell">ffmpeg -i a.mp4 -y -c:v libx264 -movflags +faststart -vf scale=640:-1 -c:a copy b.mp4
+</code></pre>
+<ul>
+<li>-i 表示输入视频</li>
+<li>-y 不询问，默认执行</li>
+<li>-c:v libx264 指定编解码器为 x264</li>
+<li><p>-movflags +faststart 输出为 fragment MP4</p>
+</li>
+<li><p>-vf 使用视频滤镜</p>
+</li>
+<li><p>scale=640:-1 缩放视频，宽度为640，高度按原宽高比例自适应</p>
+</li>
+<li>-c:a copy 复制音频</li>
+</ul>
+<p>执行后报错:</p>
+<pre><code class="bash">ffmpeg version 4.1.4 Copyright (c) 2000-2019 the FFmpeg developers
+  built with Apple LLVM version 10.0.1 (clang-1001.0.46.4)
+  configuration: --prefix=/usr/local/Cellar/ffmpeg/4.1.4_1 --enable-shared --enable-pthreads --enable-version3 --enable-avresample --cc=clang --host-cflags=&#39;-I/Library/Java/JavaVirtualMachines/adoptopenjdk-12.0.1.jdk/Contents/Home/include -I/Library/Java/JavaVirtualMachines/adoptopenjdk-12.0.1.jdk/Contents/Home/include/darwin&#39; --host-ldflags= --enable-ffplay --enable-gnutls --enable-gpl --enable-libaom --enable-libbluray --enable-libmp3lame --enable-libopus --enable-librubberband --enable-libsnappy --enable-libtesseract --enable-libtheora --enable-libvorbis --enable-libvpx --enable-libx264 --enable-libx265 --enable-libxvid --enable-lzma --enable-libfontconfig --enable-libfreetype --enable-frei0r --enable-libass --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopenjpeg --enable-librtmp --enable-libspeex --enable-videotoolbox --disable-libjack --disable-indev=jack --enable-libaom --enable-libsoxr
+  libavutil      56. 22.100 / 56. 22.100
+  libavcodec     58. 35.100 / 58. 35.100
+  libavformat    58. 20.100 / 58. 20.100
+  libavdevice    58.  5.100 / 58.  5.100
+  libavfilter     7. 40.101 /  7. 40.101
+  libavresample   4.  0.  0 /  4.  0.  0
+  libswscale      5.  3.100 /  5.  3.100
+  libswresample   3.  3.100 /  3.  3.100
+  libpostproc    55.  3.100 / 55.  3.100
+Input #0, mov,mp4,m4a,3gp,3g2,mj2, from &#39;a.mp4&#39;:
+  Metadata:
+    major_brand     : isom
+    minor_version   : 512
+    compatible_brands: isomiso2avc1mp41
+    encoder         : Lavf54.20.4
+  Duration: 00:03:19.12, start: 0.000000, bitrate: 2612 kb/s
+    Stream #0:0(und): Video: h264 (High) (avc1 / 0x31637661), yuv420p, 1280x654 [SAR 1:1 DAR 640:327], 2417 kb/s, 25 fps, 25 tbr, 12800 tbn, 50 tbc (default)
+    Metadata:
+      handler_name    : VideoHandler
+    Stream #0:1(und): Audio: aac (LC) (mp4a / 0x6134706D), 48000 Hz, stereo, fltp, 188 kb/s (default)
+    Metadata:
+      handler_name    : SoundHandler
+Stream mapping:
+  Stream #0:0 -&gt; #0:0 (h264 (native) -&gt; h264 (libx264))
+  Stream #0:1 -&gt; #0:1 (copy)
+Press [q] to stop, [?] for help
+[libx264 @ 0x7fc73d804600] height not divisible by 2 (640x327)
+Error initializing output stream 0:0 -- Error while opening encoder for output stream #0:0 - maybe incorrect parameters such as bit_rate, rate, width or height
+Conversion failed!
+</code></pre>
+<h2 id="解决"><a href="#解决" class="headerlink" title="解决"></a>解决</h2><p>问题在于  <code>height not divisible by 2</code></p>
+<p>原视频的分辨率为 <code>1280x654</code></p>
+<p>自适应缩放到640后为 <code>640x327</code></p>
+<p>查资料发现 x264 编解码器要求视频的分辨率都是偶数。</p>
+<p>因此，ffmpeg的命令修改为</p>
+<pre><code class="bash">ffmpeg -i a.mp4 -y -c:v libx264 -movflags +faststart -vf scale=640:-2 -c:a copy b.mp4
+</code></pre>
+<p>主要为 scale 修改为 640:-2</p>
+<p>根据<a href="https://ffmpeg.org/ffmpeg-filters.html#scale" target="_blank" rel="noopener">官网文档介绍</a></p>
+<blockquote>
+<p>If one and only one of the values is -n with n &gt;= 1, the scale filter will use a value that maintains the aspect ratio of the input image, calculated from the other specified dimension. After that it will, however, make sure that the calculated dimension is divisible by n and adjust the value if necessary.</p>
+</blockquote>
+<p>如果宽高值设置为负数，则表示对应的值取按比例缩放后的自适应值，且能被n整除。</p>
+<p>因此，取 <code>640:-2</code> 表示宽度为640，高度自适应后能被2整除的值。则为 <code>640x328</code></p>
 
       
       
@@ -332,10 +380,76 @@
   </div>
   
     
+    <div class="copyright">
+        <p><span>本文标题:</span><a href="/2019/10/12/ffmpeg调整分辨率height-not-divisible-by-2问题解决/">ffmpeg调整分辨率height not divisible by 2问题解决</a></p>
+        <p><span>文章作者:</span><a href="/" title="访问 呃哦 的个人博客">呃哦</a></p>
+        <p><span>发布时间:</span>2019年10月12日 - 09时56分</p>
+        <p><span>最后更新:</span>2020年08月26日 - 10时52分</p>
+        <p>
+            <span>原始链接:</span><a class="post-url" href="/2019/10/12/ffmpeg调整分辨率height-not-divisible-by-2问题解决/" title="ffmpeg调整分辨率height not divisible by 2问题解决">http://eoyohe.cn/2019/10/12/ffmpeg调整分辨率height-not-divisible-by-2问题解决/</a>
+            <span class="copy-path" data-clipboard-text="原文: http://eoyohe.cn/2019/10/12/ffmpeg调整分辨率height-not-divisible-by-2问题解决/　　作者: 呃哦" title="点击复制文章链接"><i class="fa fa-clipboard"></i></span>
+            <script src="/js/clipboard.min.js"></script>
+            <script> var clipboard = new Clipboard('.copy-path'); </script>
+        </p>
+        <p>
+            <span>许可协议:</span><i class="fa fa-creative-commons"></i> <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/cn/" title="中国大陆 (CC BY-NC-SA 3.0 CN)" target="_blank">"署名-非商用-相同方式共享 3.0"</a> 转载请保留原文链接及作者。
+        </p>
+    </div>
 
+
+
+<nav id="article-nav">
+  
+    <a href="/2019/11/08/Mac上安装hive问题解决/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption"><</strong>
+      <div class="article-nav-title">
+        
+          Mac上安装hive问题解决
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2019/04/24/odoo升级模块后字段为默认值问题修复/" id="article-nav-older" class="article-nav-link-wrap">
+      <div class="article-nav-title">odoo升级模块后字段为默认值问题修复</div>
+      <strong class="article-nav-caption">></strong>
+    </a>
+  
+</nav>
 
   
 </article>
+
+    <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#问题"><span class="toc-number">1.</span> <span class="toc-text">问题</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#解决"><span class="toc-number">2.</span> <span class="toc-text">解决</span></a></li></ol>
+</div>
+<input type="button" id="tocButton" value="隐藏目录" title="点击按钮隐藏或者显示文章目录">
+
+<script src="https://7.url.cn/edu/jslib/comb/require-2.1.6,jquery-1.9.1.min.js"></script>
+<script>
+    var valueHide = "隐藏目录";
+    var valueShow = "显示目录";
+
+    if ($(".left-col").is(":hidden")) {
+        $("#tocButton").attr("value", valueShow);
+    }
+    $("#tocButton").click(function() {
+        if ($("#toc").is(":hidden")) {
+            $("#tocButton").attr("value", valueHide);
+            $("#toc").slideDown(320);
+        }
+        else {
+            $("#tocButton").attr("value", valueShow);
+            $("#toc").slideUp(350);
+        }
+    })
+    if ($(".toc").length < 1) {
+        $("#toc, #tocButton").hide();
+    }
+</script>
+
+
 
 
 
@@ -371,6 +485,39 @@
     
 
 
+
+    <div class="scroll" id="post-nav-button">
+        
+            <a href="/2019/11/08/Mac上安装hive问题解决/" title="上一篇: Mac上安装hive问题解决">
+                <i class="fa fa-angle-left"></i>
+            </a>
+        
+        <a title="文章列表"><i class="fa fa-bars"></i><i class="fa fa-times"></i></a>
+        
+            <a href="/2019/04/24/odoo升级模块后字段为默认值问题修复/" title="下一篇: odoo升级模块后字段为默认值问题修复">
+                <i class="fa fa-angle-right"></i>
+            </a>
+        
+    </div>
+    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2020/08/25/Spring FactoryBean 初始化问题/">Spring FactoryBean 初始化问题</a></li><li class="post-list-item"><a class="post-list-link" href="/2020/04/04/wtforms-源码阅读/">wtforms 源码阅读</a></li><li class="post-list-item"><a class="post-list-link" href="/2020/02/12/高匿，匿名，透明代理区别/">高匿，匿名，透明代理区别</a></li><li class="post-list-item"><a class="post-list-link" href="/2020/01/27/VPS-网络加速小结/">VPS 网络加速小结</a></li><li class="post-list-item"><a class="post-list-link" href="/2019/11/08/Mac上安装hive问题解决/">Mac上安装hive问题解决</a></li><li class="post-list-item"><a class="post-list-link" href="/2019/10/12/ffmpeg调整分辨率height-not-divisible-by-2问题解决/">ffmpeg调整分辨率height not divisible by 2问题解决</a></li><li class="post-list-item"><a class="post-list-link" href="/2019/04/24/odoo升级模块后字段为默认值问题修复/">odoo升级模块后字段为默认值问题修复</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/13/odoo源码阅读之自动重载的实现/">odoo源码阅读之自动重载的实现</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/03/odoo远程部署命令/">odoo远程部署命令</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/12/odoo-xml语法杂记/">odoo xml语法杂记</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/02/odoo添加自定义导出按钮/">odoo添加自定义导出按钮</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/26/awk命令使用实践/">awk命令使用实践</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/19/进程、线程和协程的概念/">进程、线程和协程的概念</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/11/13/内网穿透frp及树莓派的应用/">内网穿透frp及树莓派的应用</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/11/01/树莓派之下载机和NAS服务器/">树莓派之下载机和NAS服务器</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/23/解决ssh自动掉线问题/">解决ssh自动掉线问题</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/09/04/CCF-201609-2/">CCF-201609-2</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/25/CCF-201703-4/">CCF-201703-4</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/24/CCF-201703-2/">CCF-201703-2</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/20/解决systemd下tmux和screen无法后台执行命令/">解决systemd下tmux和screen无法后台执行命令</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/18/laravel默认登录注册源码解析追踪/">laravel默认登录注册源码解析追踪</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/07/23/微信表情包电脑备份/">微信表情包电脑备份</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/07/13/mysql字符集总结/">mysql字符集总结</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/07/11/树莓派初体验/">树莓派初体验</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/05/26/kotlin踩坑/">kotlin踩坑</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/04/21/git/">git</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/04/18/dagger2-note/">dagger2_note</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/04/06/LAMP折腾记录/">LAMP折腾记录</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/04/04/mysql日常笔记/">mysql日常笔记</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/03/30/记糗百的一次爬虫经历/">记糗百的一次爬虫经历</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/03/30/第一天/">第一天</a></li></ul>
+    <script src="https://7.url.cn/edu/jslib/comb/require-2.1.6,jquery-1.9.1.min.js"></script>
+    <script>
+        $(".post-list").addClass("toc-article");
+        $(".post-list-item a").attr("target","_blank");
+        $("#post-nav-button > a:nth-child(2)").click(function() {
+            $(".fa-bars, .fa-times").toggle();
+            $(".post-list").toggle(300);
+            if ($(".toc").length > 0) {
+                $("#toc, #tocButton").toggle(200, function() {
+                    if ($(".switch-area").is(":visible")) {
+                        $("#tocButton").attr("value", valueHide);
+                        }
+                    })
+            }
+            else {
+            }
+        })
+    </script>
 
 
 

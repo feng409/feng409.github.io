@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html>
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="utf-8">
+  
+  <title>Mac上安装hive问题解决 | chemf</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="安装一开始按照书上选择源码安装，结果配置环境变量太麻烦了，后选择通过brew安装。简单命令如下 brew install hadoop brew install hive  踩坑guava版本不一致问题问题直接敲 hive 命令，遇到以下报错 LF4J: Class path contains multiple SLF4J bindings. SLF4J: Found binding in [ja">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Mac上安装hive问题解决">
+<meta property="og:url" content="http://eoyohe.cn/2019/11/08/Mac上安装hive问题解决/index.html">
+<meta property="og:site_name" content="chemf">
+<meta property="og:description" content="安装一开始按照书上选择源码安装，结果配置环境变量太麻烦了，后选择通过brew安装。简单命令如下 brew install hadoop brew install hive  踩坑guava版本不一致问题问题直接敲 hive 命令，遇到以下报错 LF4J: Class path contains multiple SLF4J bindings. SLF4J: Found binding in [ja">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2019-11-08T14:10:10.731Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Mac上安装hive问题解决">
+<meta name="twitter:description" content="安装一开始按照书上选择源码安装，结果配置环境变量太麻烦了，后选择通过brew安装。简单命令如下 brew install hadoop brew install hive  踩坑guava版本不一致问题问题直接敲 hive 命令，遇到以下报错 LF4J: Class path contains multiple SLF4J bindings. SLF4J: Found binding in [ja">
+  
+    <link rel="alternative" href="/atom.xml" title="chemf" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/img/favicon.png">
+  
+  
+      <link rel="stylesheet" href="//cdn.bootcss.com/animate.css/3.5.0/animate.min.css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/font-awesome/css/font-awesome.min.css">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  
+  
+      <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  
+  <!-- 加载特效 -->
+    <script src="/js/pace.js"></script>
+    <link href="/css/pace/pace-theme-flash.css" rel="stylesheet">
+  <script>
+      var yiliaConfig = {
+          rootUrl: '/',
+          fancybox: true,
+          animate: true,
+          isHome: false,
+          isPost: true,
+          isArchive: false,
+          isTag: false,
+          isCategory: false,
+          open_in_new: false
+      }
+  </script>
+</head></html>
+<body>
+  <div id="container">
+    <div class="left-col">
+    <div class="overlay"></div>
+<div class="intrude-less">
+    <header id="header" class="inner">
+        <a href="/" class="profilepic">
+            
+            <img lazy-src="/img/head.jpg" class="js-avatar">
+            
+        </a>
+
+        <hgroup>
+          <h1 class="header-author"><a href="/" title="Hi Mate">呃哦</a></h1>
+        </hgroup>
+
+        
+        
+        
+            <div id="switch-btn" class="switch-btn">
+                <div class="icon">
+                    <div class="icon-ctn">
+                        <div class="icon-wrap icon-house" data-idx="0">
+                            <div class="birdhouse"></div>
+                            <div class="birdhouse_holes"></div>
+                        </div>
+                        <div class="icon-wrap icon-ribbon hide" data-idx="1">
+                            <div class="ribbon"></div>
+                        </div>
+                        
+                        <div class="icon-wrap icon-link hide" data-idx="2">
+                            <div class="loopback_l"></div>
+                            <div class="loopback_r"></div>
+                        </div>
+                        
+                        
+                        <div class="icon-wrap icon-me hide" data-idx="3">
+                            <div class="user"></div>
+                            <div class="shoulder"></div>
+                        </div>
+                        
+                    </div>
+                    
+                </div>
+                <div class="tips-box hide">
+                    <div class="tips-arrow"></div>
+                    <ul class="tips-inner">
+                        <li>菜单</li>
+                        <li>标签</li>
+                        
+                        <li>友情链接</li>
+                        
+                        
+                        <li>关于我</li>
+                        
+                    </ul>
+                </div>
+            </div>
+        
+
+        <div id="switch-area" class="switch-area">
+            <div class="switch-wrap">
+                <section class="switch-part switch-part1">
+                    <nav class="header-menu">
+                        <ul>
+                        
+                            <li><a href="/Home">博客首页</a></li>
+                        
+                            <li><a href="/works">作品展示</a></li>
+                        
+                            <li><a href="/about">留言打卡</a></li>
+                        
+                            <li><a href="/FrontEndGuide">前端导航</a></li>
+                        
+                        </ul>
+                    </nav>
+                    <nav class="header-nav">
+                        <ul class="social">
+                            
+                                <a class="fl mail" target="_blank" href="http://mail.qq.com/cgi-bin/qm_share?t=qm_mailme&email=PAkNDgsKBQ4MCnxNTRJfU1E" title="mail">mail</a>
+                            
+                                <a class="fl github" target="_blank" href="https://github.com/luuman" title="github">github</a>
+                            
+                                <a class="fl zhihu" target="_blank" href="#" title="zhihu">zhihu</a>
+                            
+                                <a class="fl weibo" target="_blank" href="#" title="weibo">weibo</a>
+                            
+                                <a class="fl google" target="_blank" href="#" title="google">google</a>
+                            
+                                <a class="fl twitter" target="_blank" href="#" title="twitter">twitter</a>
+                            
+                                <a class="fl linkedin" target="_blank" href="#" title="linkedin">linkedin</a>
+                            
+                        </ul>
+                    </nav>
+                </section>
+                
+                
+                <section class="switch-part switch-part2">
+                    <div class="widget tagcloud" id="js-tagcloud">
+                        <a href="/tags/Linux/" style="font-size: 16px;">Linux</a> <a href="/tags/Spring/" style="font-size: 10px;">Spring</a> <a href="/tags/apache/" style="font-size: 10px;">apache</a> <a href="/tags/command/" style="font-size: 10px;">command</a> <a href="/tags/git/" style="font-size: 10px;">git</a> <a href="/tags/laravel/" style="font-size: 10px;">laravel</a> <a href="/tags/mysql/" style="font-size: 12px;">mysql</a> <a href="/tags/odoo/" style="font-size: 18px;">odoo</a> <a href="/tags/php/" style="font-size: 10px;">php</a> <a href="/tags/python/" style="font-size: 20px;">python</a> <a href="/tags/ssh/" style="font-size: 10px;">ssh</a> <a href="/tags/vps/" style="font-size: 10px;">vps</a> <a href="/tags/树莓派/" style="font-size: 14px;">树莓派</a> <a href="/tags/爬虫/" style="font-size: 12px;">爬虫</a> <a href="/tags/闲扯/" style="font-size: 12px;">闲扯</a>
+                    </div>
+                </section>
+                
+                
+                
+                <section class="switch-part switch-part3">
+                    <div id="js-friends">
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://luuman.github.io/">name</a>
+                    
+                    </div>
+                </section>
+                
+
+                
+                
+                <section class="switch-part switch-part4">
+                
+                    <div id="js-aboutme">纯海迷、爱运动、爱交友、爱旅行、喜欢接触新鲜事物、迎接新的挑战，更爱游离于错综复杂的编码与逻辑中</div>
+                </section>
+                
+            </div>
+        </div>
+    </header>                
+</div>
+    </div>
+    <div class="mid-col">
+      <nav id="mobile-nav">
+      <div class="overlay">
+          <div class="slider-trigger"></div>
+          <h1 class="header-author js-mobile-header hide"><a href="/" title="Me">呃哦</a></h1>
+      </div>
+    <div class="intrude-less">
+        <header id="header" class="inner">
+            <a href="/" class="profilepic">
+                
+                    <img lazy-src="/img/head.jpg" class="js-avatar">
+                
+            </a>
+            <hgroup>
+              <h1 class="header-author"><a href="/" title="Me">呃哦</a></h1>
+            </hgroup>
+            
+            <nav class="header-menu">
+                <ul>
+                
+                    <li><a href="/Home">博客首页</a></li>
+                
+                    <li><a href="/works">作品展示</a></li>
+                
+                    <li><a href="/about">留言打卡</a></li>
+                
+                    <li><a href="/FrontEndGuide">前端导航</a></li>
+                
+                <div class="clearfix"></div>
+                </ul>
+            </nav>
+            <nav class="header-nav">
+                <div class="social">
+                    
+                        <a class="mail" target="_blank" href="http://mail.qq.com/cgi-bin/qm_share?t=qm_mailme&email=PAkNDgsKBQ4MCnxNTRJfU1E" title="mail">mail</a>
+                    
+                        <a class="github" target="_blank" href="https://github.com/luuman" title="github">github</a>
+                    
+                        <a class="zhihu" target="_blank" href="#" title="zhihu">zhihu</a>
+                    
+                        <a class="weibo" target="_blank" href="#" title="weibo">weibo</a>
+                    
+                        <a class="google" target="_blank" href="#" title="google">google</a>
+                    
+                        <a class="twitter" target="_blank" href="#" title="twitter">twitter</a>
+                    
+                        <a class="linkedin" target="_blank" href="#" title="linkedin">linkedin</a>
+                    
+                </div>
+            </nav>
+        </header>                
+    </div>
+</nav>
+      <div class="body-wrap"><article id="post-Mac上安装hive问题解决" class="article article-type-post" itemscope="" itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2019/11/08/Mac上安装hive问题解决/" class="article-date">
+      <time datetime="2019-11-08T14:08:13.000Z" itemprop="datePublished">2019-11-08</time>
+</a>
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Mac上安装hive问题解决
+    </h1>
+  
+
+      </header>
+      
+      <div class="article-info article-info-post">
+        
+
+        
+        <div class="clearfix"></div>
+      </div>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+          
+        <h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><p>一开始按照书上选择源码安装，结果配置环境变量太麻烦了，后选择通过brew安装。简单命令如下</p>
+<pre><code class="shell">brew install hadoop
+brew install hive
+</code></pre>
+<h2 id="踩坑"><a href="#踩坑" class="headerlink" title="踩坑"></a>踩坑</h2><h3 id="guava版本不一致问题"><a href="#guava版本不一致问题" class="headerlink" title="guava版本不一致问题"></a>guava版本不一致问题</h3><h4 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h4><p>直接敲 <code>hive</code> 命令，遇到以下报错</p>
+<pre><code class="bash">LF4J: Class path contains multiple SLF4J bindings.
+SLF4J: Found binding in [jar:file:/usr/local/Cellar/hive/3.1.2/libexec/lib/log4j-slf4j-impl-2.10.0.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: Found binding in [jar:file:/usr/local/Cellar/hadoop/3.2.1/libexec/share/hadoop/common/lib/slf4j-log4j12-1.7.25.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: See http://www.slf4j.org/codes.html#multiple_bindings for an explanation.
+SLF4J: Actual binding is of type [org.apache.logging.slf4j.Log4jLoggerFactory]
+Exception in thread &quot;main&quot; java.lang.NoSuchMethodError: com.google.common.base.Preconditions.checkArgument(ZLjava/lang/String;Ljava/lang/Object;)V
+    at org.apache.hadoop.conf.Configuration.set(Configuration.java:1357)
+    at org.apache.hadoop.conf.Configuration.set(Configuration.java:1338)
+    at org.apache.hadoop.mapred.JobConf.setJar(JobConf.java:536)
+    at org.apache.hadoop.mapred.JobConf.setJarByClass(JobConf.java:554)
+    at org.apache.hadoop.mapred.JobConf.&lt;init&gt;(JobConf.java:448)
+    at org.apache.hadoop.hive.conf.HiveConf.initialize(HiveConf.java:5141)
+    at org.apache.hadoop.hive.conf.HiveConf.&lt;init&gt;(HiveConf.java:5099)
+    at org.apache.hadoop.hive.common.LogUtils.initHiveLog4jCommon(LogUtils.java:97)
+    at org.apache.hadoop.hive.common.LogUtils.initHiveLog4j(LogUtils.java:81)
+    at org.apache.hadoop.hive.cli.CliDriver.run(CliDriver.java:699)
+    at org.apache.hadoop.hive.cli.CliDriver.main(CliDriver.java:683)
+    at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+    at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+    at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+    at java.lang.reflect.Method.invoke(Method.java:498)
+    at org.apache.hadoop.util.RunJar.run(RunJar.java:323)
+    at org.apache.hadoop.util.RunJar.main(RunJar.java:236)
+</code></pre>
+<h4 id="原因"><a href="#原因" class="headerlink" title="原因"></a>原因</h4><p>谷歌之得到以下答案</p>
+<blockquote>
+<p>关键在： com.google.common.base.Preconditions.checkArgument 这是因为hive内依赖的<strong>guava.jar</strong>和hadoop内的<strong>版本不一致</strong>造成的。</p>
+</blockquote>
+<h4 id="解决"><a href="#解决" class="headerlink" title="解决"></a>解决</h4><pre><code class="bash"># 查看版本
+$ ls /usr/local/Cellar/hadoop/3.2.1/libexec/share/hadoop/common/lib/guava*
+/usr/local/Cellar/hadoop/3.2.1/libexec/share/hadoop/common/lib/guava-27.0-jre.jar
+$ ls /usr/local/Cellar/hive/3.1.2/libexec/lib/guava* 
+/usr/local/Cellar/hive/3.1.2/libexec/lib/guava-19.0-jre.jar
+# hadoop 版本比 hive 高，替换之
+$ mv /usr/local/Cellar/hive/3.1.2/libexec/lib/guava-19.0.jar /tmp # 个人习惯保留下副本
+$ cp /usr/local/Cellar/hadoop/3.2.1/libexec/share/hadoop/common/lib/guava-27.0-jre.jar /usr/local/Cellar/hive/3.1.2/libexec/lib/ # 替换
+</code></pre>
+<h3 id="jdk-版本不一致问题"><a href="#jdk-版本不一致问题" class="headerlink" title="jdk 版本不一致问题"></a>jdk 版本不一致问题</h3><h4 id="问题-1"><a href="#问题-1" class="headerlink" title="问题"></a>问题</h4><p>解决完上面 jar 包问题后再次敲入 <code>hive</code> 命令遇到以下报错</p>
+<pre><code class="bash">Hive Session ID = c2bd3ba5-9902-48d3-8d7b-e63bf64444cf
+Exception in thread &quot;main&quot; java.lang.ClassCastException: class jdk.internal.loader.ClassLoaders$AppClassLoader cannot be cast to class java.net.URLClassLoader (jdk.internal.loader.ClassLoaders$AppClassLoader and java.net.URLClassLoader are in module java.base of loader &#39;bootstrap&#39;)
+    at org.apache.hadoop.hive.ql.session.SessionState.&lt;init&gt;(SessionState.java:413)
+    at org.apache.hadoop.hive.ql.session.SessionState.&lt;init&gt;(SessionState.java:389)
+    at org.apache.hadoop.hive.cli.CliSessionState.&lt;init&gt;(CliSessionState.java:60)
+    at org.apache.hadoop.hive.cli.CliDriver.run(CliDriver.java:705)
+    at org.apache.hadoop.hive.cli.CliDriver.main(CliDriver.java:683)
+    at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+    at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+    at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+    at java.base/java.lang.reflect.Method.invoke(Method.java:566)
+    at org.apache.hadoop.util.RunJar.run(RunJar.java:323)
+    at org.apache.hadoop.util.RunJar.main(RunJar.java:236)
+</code></pre>
+<h4 id="原因-1"><a href="#原因-1" class="headerlink" title="原因"></a>原因</h4><p>谷歌之找到问题在于 JDK 版本不一致。个人系统是 MacOS 10.15 ，里面的 JDK 版本 11</p>
+<h4 id="解决-1"><a href="#解决-1" class="headerlink" title="解决"></a>解决</h4><p>安装低版本 jdk ，可直接在oracle官网下载的 1.8 版本 jdk 安装。</p>
+<p>安装后的系统默认 <code>jdk</code> 还是 11，但是在 <code>/Library/Java/JavaVirtualMachines</code> 目录下可看到有多个 <code>jdk</code> 版本共存。</p>
+<pre><code class="bash">$ ll /Library/Java/JavaVirtualMachines
+total 0
+drwxr-xr-x  4 root  wheel   128B Nov  3 17:01 ./
+drwxr-xr-x  4 root  wheel   128B Oct 24 08:35 ../
+drwxr-xr-x  3 root  wheel    96B Nov 15  2018 jdk-11.0.1.jdk/
+drwxr-xr-x  3 root  wheel    96B Nov  3 16:58 jdk1.8.0_212.jdk/
+</code></pre>
+<p>因此修改 <code>hive</code> 启动环境下的 <code>JAVA_HOME</code> 变量:</p>
+<ol>
+<li><p>添加写入权限，默认 <code>hive</code> 可执行文件是只读的</p>
+<pre><code class="bash">chmod +w `which hive`
+</code></pre>
+</li>
+<li><p>修改文件内容</p>
+<p>原内容如下</p>
+<pre><code class="bash">#!/bin/bash
+JAVA_HOME=&quot;$(/usr/libexec/java_home --version 1.7+)&quot; HIVE_HOME=&quot;/usr/local/Cellar/hive/3.1.2/libexec&quot; exec &quot;/usr/local/Cellar/hive/3.1.2/libexec/bin/hive&quot; &quot;$@&quot;
+</code></pre>
+<p>修改后如下</p>
+<pre><code class="bash">#!/bin/bash
+#JAVA_HOME=&quot;$(/usr/libexec/java_home --version 1.7+)&quot;
+JAVA_HOME=&quot;/Library/Java/JavaVirtualMachines/jdk1.8.0_212.jdk/Contents/Home&quot;
+HIVE_HOME=&quot;/usr/local/Cellar/hive/3.1.2/libexec&quot;
+exec &quot;/usr/local/Cellar/hive/3.1.2/libexec/bin/hive&quot; &quot;$@&quot;
+</code></pre>
+</li>
+</ol>
+
+      
+      
+        <div class="page-reward">
+          <p><a href="javascript:void(0)" onclick="dashangToggle()" class="dashang">赏</a></p>
+          <div class="hide_box"></div>
+          <div class="shang_box">
+            <a class="shang_close" href="javascript:void(0)" onclick="dashangToggle()">×</a>
+            <div class="shang_tit">
+              <p>纯属好玩</p>
+            </div>
+            <div class="shang_payimg">
+              <img src="/img/alipayimg.jpg" alt="扫码支持" title="扫一扫">
+            </div>
+              <div class="pay_explain">扫码打赏，你说多少就多少</div>
+            <div class="shang_payselect">
+              
+                <div class="pay_item checked" data-id="alipay">
+                  <span class="radiobox"></span>
+                  <span class="pay_logo"><img src="/img/alipay.png" alt="支付宝"></span>
+                </div>
+              
+              
+                <div class="pay_item" data-id="wechat">
+                  <span class="radiobox"></span>
+                  <span class="pay_logo"><img src="/img/weixin.png" alt="微信"></span>
+                </div>
+              
+            </div>
+            <div class="shang_info">
+              <p>打开<span id="shang_pay_txt">支付宝</span>扫一扫，即可进行扫码打赏哦</p>
+            </div>
+          </div>
+        </div>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/zepto/1.2.0/zepto.min.js"></script>
+        <script type="text/javascript">
+          $(".pay_item").click(function(){
+            $(this).addClass('checked').siblings('.pay_item').removeClass('checked');
+            var dataid=$(this).attr('data-id');
+            $(".shang_payimg img").attr("src","/img/"+dataid+"img.jpg");
+            $("#shang_pay_txt").text(dataid=="alipay"?"支付宝":"微信");
+          });
+          function dashangToggle(){
+            
+            $(".hide_box").fadeToggle();
+            $(".shang_box").fadeToggle();
+          }
+        </script>
+      
+    </div>
+    
+  </div>
+  
+    
+    <div class="copyright">
+        <p><span>本文标题:</span><a href="/2019/11/08/Mac上安装hive问题解决/">Mac上安装hive问题解决</a></p>
+        <p><span>文章作者:</span><a href="/" title="访问 呃哦 的个人博客">呃哦</a></p>
+        <p><span>发布时间:</span>2019年11月08日 - 22时08分</p>
+        <p><span>最后更新:</span>2019年11月08日 - 22时10分</p>
+        <p>
+            <span>原始链接:</span><a class="post-url" href="/2019/11/08/Mac上安装hive问题解决/" title="Mac上安装hive问题解决">http://eoyohe.cn/2019/11/08/Mac上安装hive问题解决/</a>
+            <span class="copy-path" data-clipboard-text="原文: http://eoyohe.cn/2019/11/08/Mac上安装hive问题解决/　　作者: 呃哦" title="点击复制文章链接"><i class="fa fa-clipboard"></i></span>
+            <script src="/js/clipboard.min.js"></script>
+            <script> var clipboard = new Clipboard('.copy-path'); </script>
+        </p>
+        <p>
+            <span>许可协议:</span><i class="fa fa-creative-commons"></i> <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/cn/" title="中国大陆 (CC BY-NC-SA 3.0 CN)" target="_blank">"署名-非商用-相同方式共享 3.0"</a> 转载请保留原文链接及作者。
+        </p>
+    </div>
+
+
+
+<nav id="article-nav">
+  
+    <a href="/2020/01/27/VPS-网络加速小结/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption"><</strong>
+      <div class="article-nav-title">
+        
+          VPS 网络加速小结
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2019/10/12/ffmpeg调整分辨率height-not-divisible-by-2问题解决/" id="article-nav-older" class="article-nav-link-wrap">
+      <div class="article-nav-title">ffmpeg调整分辨率height not divisible by 2问题解决</div>
+      <strong class="article-nav-caption">></strong>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+    <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#安装"><span class="toc-number">1.</span> <span class="toc-text">安装</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#踩坑"><span class="toc-number">2.</span> <span class="toc-text">踩坑</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#guava版本不一致问题"><span class="toc-number">2.1.</span> <span class="toc-text">guava版本不一致问题</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#问题"><span class="toc-number">2.1.1.</span> <span class="toc-text">问题</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#原因"><span class="toc-number">2.1.2.</span> <span class="toc-text">原因</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#解决"><span class="toc-number">2.1.3.</span> <span class="toc-text">解决</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#jdk-版本不一致问题"><span class="toc-number">2.2.</span> <span class="toc-text">jdk 版本不一致问题</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#问题-1"><span class="toc-number">2.2.1.</span> <span class="toc-text">问题</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#原因-1"><span class="toc-number">2.2.2.</span> <span class="toc-text">原因</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#解决-1"><span class="toc-number">2.2.3.</span> <span class="toc-text">解决</span></a></li></ol></li></ol></li></ol>
+</div>
+<input type="button" id="tocButton" value="隐藏目录" title="点击按钮隐藏或者显示文章目录">
+
+<script src="https://7.url.cn/edu/jslib/comb/require-2.1.6,jquery-1.9.1.min.js"></script>
+<script>
+    var valueHide = "隐藏目录";
+    var valueShow = "显示目录";
+
+    if ($(".left-col").is(":hidden")) {
+        $("#tocButton").attr("value", valueShow);
+    }
+    $("#tocButton").click(function() {
+        if ($("#toc").is(":hidden")) {
+            $("#tocButton").attr("value", valueHide);
+            $("#toc").slideDown(320);
+        }
+        else {
+            $("#tocButton").attr("value", valueShow);
+            $("#toc").slideUp(350);
+        }
+    })
+    if ($(".toc").length < 1) {
+        $("#toc, #tocButton").hide();
+    }
+</script>
+
+
+
+
+
+<div class="bdsharebuttonbox">
+	<a href="#" class="fx fa-weibo bds_tsina" data-cmd="tsina" title="分享到新浪微博"></a>
+	<a href="#" class="fx fa-weixin bds_weixin" data-cmd="weixin" title="分享到微信"></a>
+	<a href="#" class="fx fa-qq bds_sqq" data-cmd="sqq" title="分享到QQ好友"></a>
+	<a href="#" class="fx fa-facebook-official bds_fbook" data-cmd="fbook" title="分享到Facebook"></a>
+	<a href="#" class="fx fa-twitter bds_twi" data-cmd="twi" title="分享到Twitter"></a>
+	<a href="#" class="fx fa-linkedin bds_linkedin" data-cmd="linkedin" title="分享到linkedin"></a>
+	<a href="#" class="fx fa-files-o bds_copy" data-cmd="copy" title="分享到复制网址"></a>
+</div>
+<script>window._bd_share_config={"common":{"bdSnsKey":{},"bdText":"","bdMini":"2","bdMiniList":false,"bdPic":"","bdStyle":"2","bdSize":"24"},"share":{}};with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];</script>
+
+
+
+
+    
+        <div id="gitments"></div>
+<script src="/js/gitment.browser.js"></script>
+<script>
+    var gitment = new Gitment({
+      id: window.location.pathname,
+      owner: 'luuman',
+      repo: 'luuman.github.io',
+      oauth: {
+        client_id: 'null',
+        client_secret: 'null',
+      },
+    })
+    gitment.render('gitments')
+</script>
+    
+
+
+
+    <div class="scroll" id="post-nav-button">
+        
+            <a href="/2020/01/27/VPS-网络加速小结/" title="上一篇: VPS 网络加速小结">
+                <i class="fa fa-angle-left"></i>
+            </a>
+        
+        <a title="文章列表"><i class="fa fa-bars"></i><i class="fa fa-times"></i></a>
+        
+            <a href="/2019/10/12/ffmpeg调整分辨率height-not-divisible-by-2问题解决/" title="下一篇: ffmpeg调整分辨率height not divisible by 2问题解决">
+                <i class="fa fa-angle-right"></i>
+            </a>
+        
+    </div>
+    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2020/08/25/Spring FactoryBean 初始化问题/">Spring FactoryBean 初始化问题</a></li><li class="post-list-item"><a class="post-list-link" href="/2020/04/04/wtforms-源码阅读/">wtforms 源码阅读</a></li><li class="post-list-item"><a class="post-list-link" href="/2020/02/12/高匿，匿名，透明代理区别/">高匿，匿名，透明代理区别</a></li><li class="post-list-item"><a class="post-list-link" href="/2020/01/27/VPS-网络加速小结/">VPS 网络加速小结</a></li><li class="post-list-item"><a class="post-list-link" href="/2019/11/08/Mac上安装hive问题解决/">Mac上安装hive问题解决</a></li><li class="post-list-item"><a class="post-list-link" href="/2019/10/12/ffmpeg调整分辨率height-not-divisible-by-2问题解决/">ffmpeg调整分辨率height not divisible by 2问题解决</a></li><li class="post-list-item"><a class="post-list-link" href="/2019/04/24/odoo升级模块后字段为默认值问题修复/">odoo升级模块后字段为默认值问题修复</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/13/odoo源码阅读之自动重载的实现/">odoo源码阅读之自动重载的实现</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/03/odoo远程部署命令/">odoo远程部署命令</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/12/odoo-xml语法杂记/">odoo xml语法杂记</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/02/odoo添加自定义导出按钮/">odoo添加自定义导出按钮</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/26/awk命令使用实践/">awk命令使用实践</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/19/进程、线程和协程的概念/">进程、线程和协程的概念</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/11/13/内网穿透frp及树莓派的应用/">内网穿透frp及树莓派的应用</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/11/01/树莓派之下载机和NAS服务器/">树莓派之下载机和NAS服务器</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/23/解决ssh自动掉线问题/">解决ssh自动掉线问题</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/09/04/CCF-201609-2/">CCF-201609-2</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/25/CCF-201703-4/">CCF-201703-4</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/24/CCF-201703-2/">CCF-201703-2</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/20/解决systemd下tmux和screen无法后台执行命令/">解决systemd下tmux和screen无法后台执行命令</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/18/laravel默认登录注册源码解析追踪/">laravel默认登录注册源码解析追踪</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/07/23/微信表情包电脑备份/">微信表情包电脑备份</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/07/13/mysql字符集总结/">mysql字符集总结</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/07/11/树莓派初体验/">树莓派初体验</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/05/26/kotlin踩坑/">kotlin踩坑</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/04/21/git/">git</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/04/18/dagger2-note/">dagger2_note</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/04/06/LAMP折腾记录/">LAMP折腾记录</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/04/04/mysql日常笔记/">mysql日常笔记</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/03/30/记糗百的一次爬虫经历/">记糗百的一次爬虫经历</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/03/30/第一天/">第一天</a></li></ul>
+    <script src="https://7.url.cn/edu/jslib/comb/require-2.1.6,jquery-1.9.1.min.js"></script>
+    <script>
+        $(".post-list").addClass("toc-article");
+        $(".post-list-item a").attr("target","_blank");
+        $("#post-nav-button > a:nth-child(2)").click(function() {
+            $(".fa-bars, .fa-times").toggle();
+            $(".post-list").toggle(300);
+            if ($(".toc").length > 0) {
+                $("#toc, #tocButton").toggle(200, function() {
+                    if ($(".switch-area").is(":visible")) {
+                        $("#tocButton").attr("value", valueHide);
+                        }
+                    })
+            }
+            else {
+            }
+        })
+    </script>
+
+
+
+    <script>
+        
+    </script>
+</div>
+      <footer id="footer">
+    <div class="outer">
+        <div id="footer-info">
+            <div class="footer-left">
+                &copy; 2020 呃哦
+            </div>
+            <div class="footer-right">
+                <a href="http://hexo.io/" target="_blank">Hexo</a>  Theme <a href="https://github.com/luuman/hexo-theme-spfk" target="_blank">spfk</a> by luuman
+            </div>
+        </div>
+        
+            <div class="visit">
+                
+                    <span id="busuanzi_container_site_pv" style="display:none">
+                        <span id="site-visit">海贼到访数: 
+                            <span id="busuanzi_value_site_uv"></span>
+                        </span>
+                    </span>
+                
+                
+                    <span>, </span>
+                
+                
+                    <span id="busuanzi_container_page_pv" style="display:none">
+                        <span id="page-visit">本页阅读量: 
+                            <span id="busuanzi_value_page_pv"></span>
+                        </span>
+                    </span>
+                
+            </div>
+        
+    </div>
+</footer>
+
+    </div>
+    <script src="https://7.url.cn/edu/jslib/comb/require-2.1.6,jquery-1.9.1.min.js"></script>
+<script src="/js/main.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            var backgroundnum = 24;
+            var backgroundimg = "url(/background/bg-x.jpg)".replace(/x/gi, Math.ceil(Math.random() * backgroundnum));
+            $("#mobile-nav").css({"background-image": backgroundimg,"background-size": "cover","background-position": "center"});
+            $(".left-col").css({"background-image": backgroundimg,"background-size": "cover","background-position": "center"});
+        })
+    </script>
+
+
+
+
+
+<div class="scroll" id="scroll">
+    <a href="#"><i class="fa fa-arrow-up"></i></a>
+    <a href="#comments"><i class="fa fa-comments-o"></i></a>
+    <a href="#footer"><i class="fa fa-arrow-down"></i></a>
+</div>
+<script>
+    $(document).ready(function() {
+        if ($("#comments").length < 1) {
+            $("#scroll > a:nth-child(2)").hide();
+        };
+    })
+</script>
+
+<script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js">
+</script>
+
+  <script language="javascript">
+    $(function() {
+        $("a[title]").each(function() {
+            var a = $(this);
+            var title = a.attr('title');
+            if (title == undefined || title == "") return;
+            a.data('title', title).removeAttr('title').hover(
+
+            function() {
+                var offset = a.offset();
+                $("<div id=\"anchortitlecontainer\"></div>").appendTo($("body")).html(title).css({
+                    top: offset.top - a.outerHeight() - 15,
+                    left: offset.left + a.outerWidth()/2 + 1
+                }).fadeIn(function() {
+                    var pop = $(this);
+                    setTimeout(function() {
+                        pop.remove();
+                    }, pop.text().length * 800);
+                });
+            }, function() {
+                $("#anchortitlecontainer").remove();
+            });
+        });
+    });
+</script>
+
+
+  </div>
+</body>
+</html>
