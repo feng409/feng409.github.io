@@ -526,7 +526,7 @@ mv ./* /var/www/html/ # 默认网站目录
 </code></pre>
 <h4 id="运行"><a href="#运行" class="headerlink" title="运行"></a>运行</h4><pre><code class="bash">aria2c  --conf-path=aria2.conf
 </code></pre>
-<p>而后打开 <strong><em>127.0.0.1</em></strong> 即可看到了<br><img src="/img/webui-aria2.png" alt=""></p>
+<p>而后打开 <strong><em>127.0.0.1</em></strong> 即可看到了<br><img src="/2017/11/01/树莓派之下载机和NAS服务器/webui-aria2.png" alt=""></p>
 <h4 id="开机自启"><a href="#开机自启" class="headerlink" title="开机自启"></a>开机自启</h4><p>每次都要输入这条命令多累啊,不仅麻烦还不好管理.因此,把它写作一个Unit,通过systemd来管理是最简单方便的了.下面附上自己写的一个简单的Unit服务.</p>
 <pre><code class="bash"># sudo vim /usr/lib/systemd/system/aria2.service
 ;=============================================================================
@@ -782,6 +782,16 @@ It will not impact the appearance and can give developers a lot of support :)
 <!-- Sidebar Divider -->
 
     <div class="sidebar-divider"></div>
+
+
+<!-- Theme Material -->
+
+    <a href="https://github.com/viosey/hexo-theme-material" class="sidebar-footer-text-a" target="_blank">
+        <div class="sidebar-text mdl-button mdl-js-button mdl-js-ripple-effect sidebar-footer-text-div" data-upgraded=",MaterialButton,MaterialRipple">
+            主题 - Material
+            <span class="sidebar-badge badge-circle">i</span>
+        </div>
+    </a>
 
 
 <!-- Help & Support -->

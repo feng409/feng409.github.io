@@ -548,7 +548,7 @@
 <p>  而后通过 <strong>tmux</strong> 运行 frpc -c frpc.ini 命令就可以了</p>
 <h3 id="Dashboard"><a href="#Dashboard" class="headerlink" title="Dashboard"></a>Dashboard</h3><p>  当frps服务器端程序运行后,我们上面已经配置了 <strong>Dashboard</strong> 的端口和账号了,即可通过浏览器输入 x.x.x.x:dashboard_port 查看frp状态,查看客户端是否连接上来了,以及流量统计</p>
 <h3 id="树莓派aria2的应用"><a href="#树莓派aria2的应用" class="headerlink" title="树莓派aria2的应用"></a>树莓派aria2的应用</h3><p>  通过上面的配置,我们将树莓派的80端口和6800端口映射出去了<br>  有人可能会问,映射80端口不就好了,事实上,为了远程下载,80端口反而是非必须的,因为在上一篇文章我们介绍过了,<strong>aria2</strong> 远程下载的实现是通过rpc远程调用机制实现的,因此, <strong>webui-aria2</strong> 项目只是一个通过js实现 <strong>aria2</strong> 远程调用的一个应用,假设我们自己的电脑也有 <strong>webui-aria2</strong> 的话,只需浏览器打开,在 <strong>webui-aria2</strong> 的设置-连接设置添加 <strong>aria2</strong> 的rpc端口即可.如图所示:  </p>
-<p>  <img src="/img/rpc-connect-setting.png" alt=""></p>
+<p>  <img src="/2017/11/13/内网穿透frp及树莓派的应用/rpc-connect-setting.png" alt=""></p>
 <p>  这是我在本地 127.0.0.1 打开后设置rpc,即可连接树莓派的 <strong>aria2</strong> 了  </p>
 <p>  扯远了,假设现在是在手机端,没有安装连接 <strong>aria2</strong> rpc的软件,这时候就依旧用树莓派的就可以了,打开树莓派的http端口,因为做了端口映射,所以在浏览器输入 x.x.x.x:7003 就是了,<strong>webui-aria2</strong> 默认的rpc端口就是当前地址下的6800端口,但因为我们是做了端口映射处理,所以这里在 设置-连接设置处把rpc端口改为 7004 就可以了,如上图所示.</p>
 <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>至此,我们的树莓派就可以在何地何处都能远程添加下载任务了,并且我们映射了ssh的22端口出去,也可以远程通过ssh控制树莓派,perfect!</p>
@@ -748,6 +748,16 @@ It will not impact the appearance and can give developers a lot of support :)
 <!-- Sidebar Divider -->
 
     <div class="sidebar-divider"></div>
+
+
+<!-- Theme Material -->
+
+    <a href="https://github.com/viosey/hexo-theme-material" class="sidebar-footer-text-a" target="_blank">
+        <div class="sidebar-text mdl-button mdl-js-button mdl-js-ripple-effect sidebar-footer-text-div" data-upgraded=",MaterialButton,MaterialRipple">
+            主题 - Material
+            <span class="sidebar-badge badge-circle">i</span>
+        </div>
+    </a>
 
 
 <!-- Help & Support -->

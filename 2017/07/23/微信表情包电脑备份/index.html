@@ -480,7 +480,7 @@
                 <!-- Post Content -->
                 <div id="post-content" class="mdl-color-text--grey-700 mdl-card__supporting-text fade out">
     
-        <h3 id="起因："><a href="#起因：" class="headerlink" title="起因："></a>起因：</h3><p>一次偶然用Windows的情况下，登录微信后发现微信的表情包自动同步后在<code>文档/WeChat Files/账号/CustomEmotions</code>下，文件名是32位字母数字组合.<br><img src="/img/微信_1.png" alt=""></p>
+        <h3 id="起因："><a href="#起因：" class="headerlink" title="起因："></a>起因：</h3><p>一次偶然用Windows的情况下，登录微信后发现微信的表情包自动同步后在<code>文档/WeChat Files/账号/CustomEmotions</code>下，文件名是32位字母数字组合.<br><img src="/2017/07/23/微信表情包电脑备份/微信_1.png" alt=""></p>
 <h3 id="简单还原图片"><a href="#简单还原图片" class="headerlink" title="简单还原图片:"></a>简单还原图片:</h3><p>进入当前文件夹下的cmd窗口，执行批量重命名命令</p>
 <pre><code class="dos"> ren &quot;*&quot; &quot;*.jpg&quot;
 </code></pre>
@@ -492,10 +492,10 @@
 <li>“*.jpg” 重命名所有文件加后缀名.jpg</li>
 </ul>
 </blockquote>
-<p>效果如下：<img src="/img/微信_2.png" alt=""></p>
+<p>效果如下：<img src="/2017/07/23/微信表情包电脑备份/微信_2.png" alt=""></p>
 <h3 id="识别gif并自动根绝文件类型重命名"><a href="#识别gif并自动根绝文件类型重命名" class="headerlink" title="识别gif并自动根绝文件类型重命名"></a>识别gif并自动根绝文件类型重命名</h3><p>从上面的示例可以看出，这些没有文件后缀的文件其实是某一类型的文件。因此表情包除了静态图还有动态图，把动态图命名为jpg静态图无疑是不好的。因此，需要自动识别命名gif图。<br><del>事实上，文件名后缀只是作为操作系统识别文件的一种标志，并不能改变文件内部的信息。扩展名为jpg的文件也可能是一个扩展为sh的脚本文件。扯远了</del>  </p>
 <p>在Linux下，file命令可以自动识别文件的类型。  </p>
-<p><img src="/img/微信_3.png" alt=""><br>没错，这里是要用这个命令来重命名。简单写了个Python脚本如下：</p>
+<p><img src="/2017/07/23/微信表情包电脑备份/微信_3.png" alt=""><br>没错，这里是要用这个命令来重命名。简单写了个Python脚本如下：</p>
 <pre><code class="python">&#39;&#39;&#39;
 # =============================================================================
 #      FileName: rename.py
@@ -717,6 +717,16 @@ It will not impact the appearance and can give developers a lot of support :)
 <!-- Sidebar Divider -->
 
     <div class="sidebar-divider"></div>
+
+
+<!-- Theme Material -->
+
+    <a href="https://github.com/viosey/hexo-theme-material" class="sidebar-footer-text-a" target="_blank">
+        <div class="sidebar-text mdl-button mdl-js-button mdl-js-ripple-effect sidebar-footer-text-div" data-upgraded=",MaterialButton,MaterialRipple">
+            主题 - Material
+            <span class="sidebar-badge badge-circle">i</span>
+        </div>
+    </a>
 
 
 <!-- Help & Support -->
