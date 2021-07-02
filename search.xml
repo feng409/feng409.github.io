@@ -3,6 +3,23 @@
   
     
     <entry>
+      <title>如何用 git 折磨同事</title>
+      <link href="/2021/07/02/%E5%A6%82%E4%BD%95%E7%94%A8-git-%E6%8A%98%E7%A3%A8%E5%90%8C%E4%BA%8B/"/>
+      <url>/2021/07/02/%E5%A6%82%E4%BD%95%E7%94%A8-git-%E6%8A%98%E7%A3%A8%E5%90%8C%E4%BA%8B/</url>
+      
+        <content type="html"><![CDATA[<p><strong>merge  代码的正确姿势</strong></p><h2 id="前情铺垫"><a href="#前情铺垫" class="headerlink" title="前情铺垫"></a>前情铺垫</h2><p>这里就不讲 gitflow 的问题了，最最简单的场景，同事A 和 B，协同开发，假设分支名是 feature。两人共同在 feature  上提交代码。</p><h3 id="初始化"><a href="#初始化" class="headerlink" title="初始化"></a>初始化</h3><p><img src="http://static.eoyohe.cn/blog/git_init.png" alt=""></p><h3 id="B-君开了个分支，写了一行B代码"><a href="#B-君开了个分支，写了一行B代码" class="headerlink" title="B 君开了个分支，写了一行B代码"></a>B 君开了个分支，写了一行B代码</h3><p><img src="http://static.eoyohe.cn/blog/git_checkout_b.png" alt=""></p><h3 id="B-君告知A，请求代码合并到公共分支上"><a href="#B-君告知A，请求代码合并到公共分支上" class="headerlink" title="B 君告知A，请求代码合并到公共分支上"></a>B 君告知A，请求代码合并到公共分支上</h3><p>A 一堆操作猛如虎</p><pre><code class="bash">git checkout featuregit merge -s ours func_b</code></pre><p>通知B君，我合并你代码了。</p><h3 id="这时候-B-君一看，我代码咋没了"><a href="#这时候-B-君一看，我代码咋没了" class="headerlink" title="这时候 B 君一看，我代码咋没了"></a><strong>这时候 B 君一看，我代码咋没了</strong></h3><pre><code class="bash">😠 demo git:(feature) cat code😠 demo git:(feature)</code></pre><p>再看一下 <code>git log</code></p><pre><code class="bash">😠 demo git:(feature) git log --oneline --decorate --graph*   846f001 (HEAD -&gt; feature) Merge branch &#39;func_b&#39; into feature|\\| * 93972fb (func_b) code by b|/* 1c2b405 init</code></pre><p>没毛病，提交已经合并了。</p><h3 id="要不自己再合一下？"><a href="#要不自己再合一下？" class="headerlink" title="要不自己再合一下？"></a><strong>要不自己再合一下？</strong></h3><pre><code class="bash">😡 demo git:(feature) git merge func_bAlready up to date.</code></pre><p>完犊子，git 认为已经合并过了 ，不做处理。🤬</p><h2 id="原理"><a href="#原理" class="headerlink" title="原理"></a>原理</h2><p>我们合并代码时候，是可以指定合并策略的。<code>recursive</code> 是默认的。</p><ul><li>resolve</li><li>recursive</li><li>octopus</li><li>ours</li><li>subtree</li></ul><p>划重点，<code>ours</code>  策略，即合并时候，不管别人做了什么，以我分支上的提交为主，丢弃掉别人的变动。</p><p>对此 ，我们可以有很多操作坑队友</p><pre><code class="bash">$ git merge --strategy=ours origin/master  # 合并主干代码，但丢弃主干变动$ git pull -s ours # 拉取远程代码，并丢弃队友push的代码</code></pre><h3 id="结尾"><a href="#结尾" class="headerlink" title="结尾"></a>结尾</h3><p>为啥我会看这些？因为我特么是被坑的那个🤬。</p><p>由于太气了，所以就不好好介绍上述其他策略了，详见大佬文章</p><p><a href="https://blog.walterlv.com/post/git-merge-strategy.html#resolve" target="_blank" rel="noopener">git 合并策略</a></p>]]></content>
+      
+      
+      
+        <tags>
+            
+            <tag> git </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    <entry>
       <title>华为云服务器 443 端口 ssl 无法使用问题排查</title>
       <link href="/2021/03/08/%E5%8D%8E%E4%B8%BA%E4%BA%91%E6%9C%8D%E5%8A%A1%E5%99%A8-443-%E7%AB%AF%E5%8F%A3-ssl-%E6%97%A0%E6%B3%95%E4%BD%BF%E7%94%A8%E9%97%AE%E9%A2%98%E6%8E%92%E6%9F%A5/"/>
       <url>/2021/03/08/%E5%8D%8E%E4%B8%BA%E4%BA%91%E6%9C%8D%E5%8A%A1%E5%99%A8-443-%E7%AB%AF%E5%8F%A3-ssl-%E6%97%A0%E6%B3%95%E4%BD%BF%E7%94%A8%E9%97%AE%E9%A2%98%E6%8E%92%E6%9F%A5/</url>
