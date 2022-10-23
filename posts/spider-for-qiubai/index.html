@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8" />
+<title>记糗百的一次爬虫经历</title>
+<meta name="description" 
+      content=""
+>
+
+  
+
+
+
+
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link
+  rel="alternate"
+  type="application/rss+xml"
+  href="https://eoyohe.cn/index.xml"
+  title="chemf"
+/>
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="记糗百的一次爬虫经历"/>
+<meta name="twitter:description" content="基本爬虫限速，伪装"/>
+
+
+
+<link rel="stylesheet" href="https://eoyohe.cn/fontawesome/css/all.min.css" />
+
+
+
+
+<link
+  crossorigin="anonymous"
+  href="/css/styles.min.css"
+  integrity=""
+  rel="preload stylesheet"
+  as="style"
+/>
+
+
+
+
+<link
+  id="dark-mode-theme"
+  crossorigin="anonymous"
+  href="/css/dark.min.css"
+  integrity=""
+  rel="preload stylesheet"
+  as="style"
+/>
+
+
+<script>
+  var darkTheme = document.getElementById('dark-mode-theme')
+  var storedTheme = localStorage.getItem('dark-mode-storage')
+
+  if (storedTheme === 'dark') {
+    darkTheme.disabled = false
+  } else if (storedTheme === 'light') {
+    darkTheme.disabled = true
+  }
+</script>
+
+
+<script defer crossorigin="anonymous" src="/js/theme.js" integrity=""></script>
+
+
+<script defer crossorigin="anonymous" src="/js/instantpage.min.js" integrity=""></script><meta name="generator" content="Hugo 0.83.1" />
+  </head>
+  <body>
+    
+  
+
+
+
+
+  <header>
+    <nav class="navbar">
+  <div class="nav">
+    
+
+    <ul class="nav-links">
+      
+    </ul>
+  </div>
+</nav>
+
+    <div class="intro-header">
+      <div class="container">
+        <div class="posts-heading">
+          
+            <h1>
+              记糗百的一次爬虫经历
+            </h1>
+          
+          
+        </div>
+      </div>
+    </div>
+  </header>
+  
+
+    
+  <div class="container" role="main">
+    <article class="article" class="blog-post">
+      
+  <h5 id="事情起源">事情起源：</h5>
+<pre><code>  一次无聊的想要做点东西，发现数据库没点东西，然后就想到去糗百爬点东西，然后就开始了入坑。。。
+</code></pre>
+<h5 id="工具python3-scrapy框架">工具：Python3 scrapy框架</h5>
+<p>想起以前的爬虫经历，几乎没遇到过什么防爬虫措施，于是就直接开始了调试准备get√xpath表达式的时候，有了第一个坑，</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">scrapy shell http://www.qiushibaike.com/text/
+</code></pre></div><p>然后！果断报错了，<img src="/img/%E7%B3%97%E7%99%BE_1.png" alt=""></p>
+<h4 id="然而我竟然就去谷歌-twisted-框架的这个错误结果可想而知没有答案最后突然想到一点好像糗百一直被作为爬虫入门博客的例子估计是被爬怕了加了-反爬虫机制">然而我竟然就去谷歌 <code>twisted</code> 框架的这个错误，结果可想而知没有答案，最后突然想到一点，好像。。。糗百一直被作为爬虫入门博客的例子。。。估计是被爬怕了，加了 <code>反爬虫机制</code>，，，</h4>
+<ul>
+<li>于是开始谷歌scrapy伪装浏览器怎么写，最后在项目配置文件setting.py中的<code>DEFAULT_REQUEST_HEADERS </code>加入以下伪装：</li>
+</ul>
+<pre><code class="language-scrapy" data-lang="scrapy">'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:52.0) Gecko/20100101 Firefox/52.0',
+'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+'Accept-Language': 'en-US,en;q=0.5',
+'Accept-Encoding': 'gzip, deflate',
+'Cookie':'''_xsrf=2|da663c38|074b39a46ce47715d5a3376af4b154b7|1490869563; _qqq_uuid_=&quot;2|1:0|10:1490869563|10:_qqq_uuid_|56:ZGY2MzY5ZmI1MTJkNmIzZjQ1ODM1YTVlYTE4NjQ0ZjBhOWEzMmViNg==|cc49d57f4513ac2d3d35b453fe41b11c35c66ac1eb6f214ad7f81f013e3789ba&quot;; Hm_lvt_2670efbdd59c7e3ed3749b458cafaa37=1490869564; Hm_lpvt_2670efbdd59c7e3ed3749b458cafaa37=1490869564; _ga=GA1.2.136222138.1490869564; _gat=1''',
+'Connection': 'keep-alive',
+'Upgrade-Insecure-Requests': '1',
+'If-None-Match': &quot;9de88e87dd2d3140edc8af02a7bc9516598bc9fc&quot;
+}
+</code></pre><p>好了，</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">scrapy shell http://www.qiushibaike.com/text/
+</code></pre></div><p>爬虫调试没问题了，next，
+写好了一切逻辑后，代码如下：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#75715e"># -*- coding: utf-8 -*-</span>
+<span style="color:#f92672">import</span> scrapy
+<span style="color:#f92672">from</span> qiushibaike.items <span style="color:#f92672">import</span> TextItem
+
+<span style="color:#66d9ef">class</span> <span style="color:#a6e22e">TextSpider</span>(scrapy<span style="color:#f92672">.</span>Spider):
+    name <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;text&#34;</span>
+    allowed_domains <span style="color:#f92672">=</span> [<span style="color:#e6db74">&#34;qiushibaike.com&#34;</span>]
+    start_urls <span style="color:#f92672">=</span> [<span style="color:#e6db74">&#39;http://qiushibaike.com/text/page/1&#39;</span>]
+
+    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">parse</span>(self, response):
+        item <span style="color:#f92672">=</span> TextItem()
+        li <span style="color:#f92672">=</span> response<span style="color:#f92672">.</span>xpath(<span style="color:#e6db74">&#39;&#39;&#39;//*[@class=&#39;content&#39;]/span&#39;&#39;&#39;</span>)
+        liContent <span style="color:#f92672">=</span> list()
+        <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> li:
+            liContent<span style="color:#f92672">.</span>append(<span style="color:#e6db74">&#39;&#39;</span><span style="color:#f92672">.</span>join(i<span style="color:#f92672">.</span>xpath(<span style="color:#e6db74">&#39;text()&#39;</span>)<span style="color:#f92672">.</span>extract()))
+        item[<span style="color:#e6db74">&#39;content&#39;</span>] <span style="color:#f92672">=</span> liContent
+        <span style="color:#66d9ef">yield</span> item
+
+        <span style="color:#75715e">#提取出下一页链接</span>
+        nextPage <span style="color:#f92672">=</span> response<span style="color:#f92672">.</span>xpath(<span style="color:#e6db74">&#34;//*[@class=&#39;next&#39;]/parent::a/@href&#34;</span>)<span style="color:#f92672">.</span>extract()
+        <span style="color:#66d9ef">if</span> len(nextPage) <span style="color:#f92672">&gt;</span> <span style="color:#ae81ff">0</span>:
+            nextPage <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;http://www.qiushibaike.com&#39;</span> <span style="color:#f92672">+</span> nextPage[<span style="color:#ae81ff">0</span>]
+            <span style="color:#66d9ef">yield</span> scrapy<span style="color:#f92672">.</span>Request(nextPage, callback<span style="color:#f92672">=</span>self<span style="color:#f92672">.</span>parse)
+
+</code></pre></div><ul>
+<li>然后,</li>
+</ul>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">scrapy crawl text  
+</code></pre></div><p>这里去糗百网站看了，text这个栏目是有35页的，但我爬到第12页就报错了，
+<img src="/img/%E7%B3%97%E7%99%BE_2.png" alt="">,</p>
+<ul>
+<li>好吧，503错误，Web 服务器目前无法处理HTTP 请求,具体自行维基百度，这个错误对于爬虫来说，还是很容易看出来是哪出问题的：爬虫速度太快，服务器承载不了报错。既然太快，那就需要限制爬虫，好在作为一个强大的爬虫框架，scrapy也有想到了这一点，也有相应的限制措施，以下是在setting.py文件下增加如下配置即可，</li>
+</ul>
+<pre><code>AUTOTHROTTLE_ENABLED = True #开启scrapy的自动限速扩展 注：默认不开启，False
+# The initial download delay
+AUTOTHROTTLE_START_DELAY = 5 #爬虫启动等待时间，单位秒
+# The maximum download delay to be set in case of high latencies
+AUTOTHROTTLE_MAX_DELAY = 60 # 爬虫最大等待时间，这里是照搬官网，用不到这个设置
+DOANLOAD_DELAY = 5 # 爬虫中间下载件每次下载的间隔时间
+CONCURRENT_REQUESTS_PER_DOMAIN = 1 # 爬虫的对单个IP进行并发请求的最大值
+</code></pre><p>如此，爬虫便可以爬完35页了，
+缺点：速度贼慢！</p>
+<p>总结：以前爬一些小网站没有这些对应的反爬虫措施，倒是大意了，作为一只爬虫，最基本的怎能不伪装成浏览器呢。。。</p>
+
+
+
+
+      
+        <div class="blog-tags">
+          
+            <a
+              href="https://eoyohe.cn/tags/%E7%88%AC%E8%99%AB/"
+              >爬虫</a
+            >&nbsp;
+          
+            <a
+              href="https://eoyohe.cn/tags/python/"
+              >python</a
+            >&nbsp;
+          
+        </div>
+      
+
+      
+    </article>
+    
+    
+      
+
+    
+  </div>
+
+    <footer>
+  
+
+<div class="social-icons">
+  
+
+  
+</div>
+
+
+  
+  <div class="container">
+    <p class="credits copyright">
+      <a href="https://eoyohe.cn/about"></a>
+      &nbsp;&copy;
+      2017 - 
+      2021
+      
+        &nbsp;/&nbsp;
+        <a href="https://eoyohe.cn/">粤ICP备2022033411号</a>
+      
+      &nbsp;&ndash;&nbsp;
+      <em class="fas fa-moon" id="dark-mode-toggle"></em>
+    </p>
+  </div>
+</footer>
+
+  </body>
+</html>

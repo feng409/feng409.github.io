@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8" />
+<title>mysql字符集总结</title>
+<meta name="description" 
+      content=""
+>
+
+  
+
+
+
+
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link
+  rel="alternate"
+  type="application/rss+xml"
+  href="https://eoyohe.cn/index.xml"
+  title="chemf"
+/>
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="mysql字符集总结"/>
+<meta name="twitter:description" content="mysql 字符集语法记录&hellip;"/>
+
+
+
+<link rel="stylesheet" href="https://eoyohe.cn/fontawesome/css/all.min.css" />
+
+
+
+
+<link
+  crossorigin="anonymous"
+  href="/css/styles.min.css"
+  integrity=""
+  rel="preload stylesheet"
+  as="style"
+/>
+
+
+
+
+<link
+  id="dark-mode-theme"
+  crossorigin="anonymous"
+  href="/css/dark.min.css"
+  integrity=""
+  rel="preload stylesheet"
+  as="style"
+/>
+
+
+<script>
+  var darkTheme = document.getElementById('dark-mode-theme')
+  var storedTheme = localStorage.getItem('dark-mode-storage')
+
+  if (storedTheme === 'dark') {
+    darkTheme.disabled = false
+  } else if (storedTheme === 'light') {
+    darkTheme.disabled = true
+  }
+</script>
+
+
+<script defer crossorigin="anonymous" src="/js/theme.js" integrity=""></script>
+
+
+<script defer crossorigin="anonymous" src="/js/instantpage.min.js" integrity=""></script><meta name="generator" content="Hugo 0.83.1" />
+  </head>
+  <body>
+    
+  
+
+
+
+
+  <header>
+    <nav class="navbar">
+  <div class="nav">
+    
+
+    <ul class="nav-links">
+      
+    </ul>
+  </div>
+</nav>
+
+    <div class="intro-header">
+      <div class="container">
+        <div class="posts-heading">
+          
+            <h1>
+              mysql字符集总结
+            </h1>
+          
+          
+        </div>
+      </div>
+    </div>
+  </header>
+  
+
+    
+  <div class="container" role="main">
+    <article class="article" class="blog-post">
+      
+  <ul>
+<li>
+<p>查看数据库支持的字符集:<br>
+<code>SHOW CHARACTER SET;</code></p>
+</li>
+<li>
+<p>查看数据库当前使用的字符集:<br>
+<code>SHOW VARIABLES LIKE '%char%';</code></p>
+<blockquote>
+<p>各字段含义
+<img src="/img/character_set.png" alt=""><br>
+注：Linux下默认字符集是latin1，不支持中文。</p>
+</blockquote>
+</li>
+<li>
+<p>修改数据库字符集:<br>
+<code>alter database database_name character set xxx;</code></p>
+</li>
+<li>
+<p>修改表字符集:<br>
+<code> alter table table_name character set xxx；</code></p>
+</li>
+<li>
+<p>修改表字符集的同时转换已有列字符集:<br>
+<code>alter table table_name convert to character set xxx;</code></p>
+</li>
+<li>
+<p>修改列字符集</p>
+<pre><code>ALTER TABLE table_name MODIFY
+ column_name {CHAR | VARCHAR | TEXT} (column_length)
+ [CHARACTER SET charset_name]
+ [COLLATE collation_name]```
+</code></pre></li>
+</ul>
+<pre><code>   
+- 字符集校对规则(COLLATION)
+&gt;在字符集内部进行字符比较的规则，如大小写敏感等
+
+- 字符集校对规则特征:
+  1. 两个不同的字符集不能有相同的校对规则
+  2. 每个字符集有一个默认校对规则
+  3. 存在校对规则命名约定：以其相关的字符集名开始，中间包括一个语言名，并且以_ci（大小写不敏感）、_cs（大小写敏感）或_bin（二元）结束。  
+
+- 修改数据库默认字符集方法：
+  - `set variable_name=character_set`  
+  eg: `set character_set_database=utf8mb4`
+  &gt; 这种方法设置的字符集仅在此次连接，回话有效，重启后恢复默认
+  - 在my.cnf配置文件设置字符集默认参数
+  ```bash
+    [client]
+    # 设置客户端字符集
+    default-character-set = utf8mb4
+    [mysqld]
+    # 设置服务端默认字符集
+    character-set-server = utf8mb4
+    # 设置服务端字符集默认校对规则
+    collation-server = utf8mb4_unicode_ci
+    # 设置拒绝客户端发送的字符集设置信息，即以服务端设置的字符集为准，可以防止客户端误操作
+    character-set-client-handshake = FALSE
+</code></pre><p>注：在MySQL5.5.3之前，字符集在my.cnf中的配置为：</p>
+<blockquote>
+<p>[mysqd]<br>
+default-character-set=utf8mb4<br>
+但是在5.5.3中弃用了这个属性，详见<a href="http://dev.mysql.com/doc/refman/5.5/en/server-options.html#option_mysqld_default-character-set">文档</a></p>
+</blockquote>
+<ul>
+<li>注：emoji表情为四个字节，而utf8是三个字节的，因此用utf8存储emoji表情会报错 <code>Incorrect string value: '\xF0\x9F\x98\x84\xF0\x9F</code>，必须用utf8mb4，utf8mb4是用四个字节存储</li>
+</ul>
+
+
+
+
+      
+        <div class="blog-tags">
+          
+            <a
+              href="https://eoyohe.cn/tags/mysql/"
+              >mysql</a
+            >&nbsp;
+          
+        </div>
+      
+
+      
+    </article>
+    
+    
+      
+
+    
+  </div>
+
+    <footer>
+  
+
+<div class="social-icons">
+  
+
+  
+</div>
+
+
+  
+  <div class="container">
+    <p class="credits copyright">
+      <a href="https://eoyohe.cn/about"></a>
+      &nbsp;&copy;
+      2017 - 
+      2021
+      
+        &nbsp;/&nbsp;
+        <a href="https://eoyohe.cn/">粤ICP备2022033411号</a>
+      
+      &nbsp;&ndash;&nbsp;
+      <em class="fas fa-moon" id="dark-mode-toggle"></em>
+    </p>
+  </div>
+</footer>
+
+  </body>
+</html>

@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8" />
+<title>树莓派之下载机和NAS服务器</title>
+<meta name="description" 
+      content=""
+>
+
+  
+
+
+
+
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link
+  rel="alternate"
+  type="application/rss+xml"
+  href="https://eoyohe.cn/index.xml"
+  title="chemf"
+/>
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="树莓派之下载机和NAS服务器"/>
+<meta name="twitter:description" content="使用树莓派搭建下载机和NAS局域网共享服务器"/>
+
+
+
+<link rel="stylesheet" href="https://eoyohe.cn/fontawesome/css/all.min.css" />
+
+
+
+
+<link
+  crossorigin="anonymous"
+  href="/css/styles.min.css"
+  integrity=""
+  rel="preload stylesheet"
+  as="style"
+/>
+
+
+
+
+<link
+  id="dark-mode-theme"
+  crossorigin="anonymous"
+  href="/css/dark.min.css"
+  integrity=""
+  rel="preload stylesheet"
+  as="style"
+/>
+
+
+<script>
+  var darkTheme = document.getElementById('dark-mode-theme')
+  var storedTheme = localStorage.getItem('dark-mode-storage')
+
+  if (storedTheme === 'dark') {
+    darkTheme.disabled = false
+  } else if (storedTheme === 'light') {
+    darkTheme.disabled = true
+  }
+</script>
+
+
+<script defer crossorigin="anonymous" src="/js/theme.js" integrity=""></script>
+
+
+<script defer crossorigin="anonymous" src="/js/instantpage.min.js" integrity=""></script><meta name="generator" content="Hugo 0.83.1" />
+  </head>
+  <body>
+    
+  
+
+
+
+
+  <header>
+    <nav class="navbar">
+  <div class="nav">
+    
+
+    <ul class="nav-links">
+      
+    </ul>
+  </div>
+</nav>
+
+    <div class="intro-header">
+      <div class="container">
+        <div class="posts-heading">
+          
+            <h1>
+              树莓派之下载机和NAS服务器
+            </h1>
+          
+          
+        </div>
+      </div>
+    </div>
+  </header>
+  
+
+    
+  <div class="container" role="main">
+    <article class="article" class="blog-post">
+      
+  <h2 id="简介">简介</h2>
+<blockquote>
+<p>Q: 用树莓派搭建下载机的优势是什么<br>
+A: 树莓派耗电量极低,可以24小时挂机不费多少电费</p>
+</blockquote>
+<blockquote>
+<p>Q: NAS局域云是什么<br>
+A: NAS全称是Network Attached Storage,即网络连接存储设备,通俗点讲就是云存储,可以让你在局域网内有个可以任意读写的网盘,在不同设备都可以访问.适合用来存储大文件或者电影等,从而在不同设备都可直接观看电影</p>
+</blockquote>
+<h2 id="开始动手">开始动手!</h2>
+<h3 id="搭建下载机">搭建下载机</h3>
+<p>在<a href="/2017/07/11/%E6%A0%91%E8%8E%93%E6%B4%BE%E5%88%9D%E4%BD%93%E9%AA%8C/">树莓派初体验</a>一文已经提到烧录好了系统,因此下一步就是安装<strong>aria2</strong></p>
+<blockquote>
+<p><a href="https://aria2.github.io/">aria2</a>是一个轻量级和多来源的命令行下载工具,aria2支持 HTTP/HTTPS, FTP, SFTP, BitTorrent 和 Metalink等协议.(注:不支持ed2k协议).</p>
+</blockquote>
+<h4 id="安装">安装</h4>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">sudo apt install aria2 
+</code></pre></div><h4 id="使用">使用</h4>
+<p>aria2 安装后对应的命令不是aria2而是aria2c.
+可以通过<code>man aria2c</code>查看使用手册
+最简单的通过命令下载文件的例子如下</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">aria2c http://example.org/mylinux.iso
+</code></pre></div><h4 id="配置">配置</h4>
+<p>aria2c是有很多命令选项的,我们可以把这些选项写成一个配置文件,在启动时候通过 <code>--conf-path=aria2.conf</code> 命令选项指定配置文件即可<br>
+下面是我自己用的配置文件,仅供参考</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#75715e">#文件保存目录 </span>
+dir<span style="color:#f92672">=</span>/home/feng/Downloads/aria2
+<span style="color:#75715e">#因为垃圾运营商还没有ipv6，获取了也没有，关掉</span>
+disable-ipv6<span style="color:#f92672">=</span>true  
+<span style="color:#75715e">#打开rpc给等会的web管理界面用</span>
+enable-rpc<span style="color:#f92672">=</span>true  
+rpc-allow-origin-all<span style="color:#f92672">=</span>true  
+rpc-listen-all<span style="color:#f92672">=</span>true  
+<span style="color:#75715e">#rpc监听端口6800 缺省设置</span>
+rpc-listen-port<span style="color:#f92672">=</span><span style="color:#ae81ff">6800</span>  
+<span style="color:#75715e">#允许断点续传</span>
+<span style="color:#66d9ef">continue</span><span style="color:#f92672">=</span>true  
+<span style="color:#75715e">#进度保存文件</span>
+input-file<span style="color:#f92672">=</span>/home/feng/opt/aria2/aria2.session  
+save-session<span style="color:#f92672">=</span>/home/feng/opt/aria2/aria2.session  
+<span style="color:#75715e">#最大同时下载任务数</span>
+max-concurrent-downloads<span style="color:#f92672">=</span><span style="color:#ae81ff">8</span>
+</code></pre></div><p>详细配置文件选项可以参考<a href="https://gist.github.com/feng409/e52767790eb8f47016f5059bc7df44cc">这里</a></p>
+<h4 id="rpcremote-procedure-call远程过程调用">RPC(Remote Procedure Call)远程过程调用</h4>
+<p>想必有人已经发现上面配置文件中有不少是关于rpc的,aria2是支持RPC远程调用的<br>
+通过rpc远程调用,我们可以使用一些web应用来远程调用aria2下载,不然每次都通过命令行调用多累啊.<br>
+github有不少大佬写好的web应用项目了,可以直接拿来用,安装也很简单.下面推荐下:</p>
+<ul>
+<li><strong><a href="https://github.com/ziahamza/webui-aria2">webui-aria2</a></strong> 最多人使用的aria2 web应用.支持多国语言,中文汉化不完全,界面简洁</li>
+<li><strong><a href="https://github.com/binux/yaaw">yaaw</a></strong> 国产的另一个框架,不过官方不支持中文,github上有汉化版.界面不大喜欢</li>
+<li><strong><a href="https://github.com/mayswind/AriaNg">AriaNg</a></strong> 同国产的一个web ui项目,支持中文,在汉化方面应该是最好的一个了</li>
+</ul>
+<p>在这里以 <strong>webui-aria2</strong> 项目为例,在github上克隆项目源码后,直接将项目源码移动到网站目录下即可.而后打开本地网站即可看到.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">git clone https://github.com/ziahamza/webui-aria2 <span style="color:#75715e">#克隆源码</span>
+cd webui-aria2
+mv ./* /var/www/html/ <span style="color:#75715e"># 默认网站目录</span>
+</code></pre></div><h4 id="运行">运行</h4>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">aria2c  --conf-path<span style="color:#f92672">=</span>aria2.conf
+</code></pre></div><p>而后打开 <em><strong>127.0.0.1</strong></em> 即可看到了
+<img src="/img/webui-aria2.png" alt=""></p>
+<h4 id="开机自启">开机自启</h4>
+<p>每次都要输入这条命令多累啊,不仅麻烦还不好管理.因此,把它写作一个Unit,通过systemd来管理是最简单方便的了.下面附上自己写的一个简单的Unit服务.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># sudo vim /usr/lib/systemd/system/aria2.service</span>
+;<span style="color:#f92672">=============================================================================</span>
+;     FileName: aria2.service
+;         Desc: aria2 download
+;       Author: chemf
+;        Email: chemf01@163.com
+;     HomePage: 
+;      Version: 0.0.1
+;   LastChange: 2017-10-17 10:03:47
+;      History:
+;<span style="color:#f92672">=============================================================================</span>
+<span style="color:#f92672">[</span>Unit<span style="color:#f92672">]</span>
+Description<span style="color:#f92672">=</span>aria2 download service
+
+<span style="color:#f92672">[</span>Service<span style="color:#f92672">]</span>
+Type<span style="color:#f92672">=</span>simple
+ExecStart<span style="color:#f92672">=</span>/usr/bin/aria2c --conf-path<span style="color:#f92672">=</span>/home/feng/opt/aria2/aria2.conf <span style="color:#75715e"># 这里的路径需要改为自己的</span>
+
+<span style="color:#f92672">[</span>Install<span style="color:#f92672">]</span>
+WantedBy<span style="color:#f92672">=</span>multi-user.target
+</code></pre></div><p>现在,让我们结束刚才的进程并通过服务启动aria2吧,并让他开机自启</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sudo systemctl daemon-reload <span style="color:#75715e"># 重载服务管理器配置,就是扫描获取到咱们刚写的服务</span>
+sudo systemctl start aria2.service <span style="color:#75715e"># 启动服务</span>
+sudo systemctl enable aria2.service <span style="color:#75715e"># 设置服务开机自启</span>
+</code></pre></div><p>至此,我们的下载机部分完成了.</p>
+<h3 id="搭建nas服务">搭建NAS服务</h3>
+<h4 id="samba简介">samba简介</h4>
+<blockquote>
+<p>Samba是在Linux和UNIX系统上实现SMB协议的一个免费软件，由服务器及客户端程序构成。 SMB（Server Messages Block，信息服务块）是一种在局域网上共享文件和打印机的一种通信协议，它为局域网内的不同计算机之间提供文件及打印机等资源的共享服务。                 &ndash;<a href="https://baike.baidu.com/item/Samba">百度百科-samba</a></p>
+</blockquote>
+<blockquote>
+<p>简而言之,Samba就是一个Linux上的共享服务器软件</p>
+</blockquote>
+<h4 id="安装-1">安装</h4>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sudo apt install samba  
+</code></pre></div><h4 id="配置-1">配置</h4>
+<p>参考配置如下:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e">#vim /etc/samba/smb.conf</span>
+<span style="color:#75715e">#其他默认部分略</span>
+<span style="color:#75715e">#======================= Share Definitions =======================</span>
+<span style="color:#f92672">[</span>custom_share<span style="color:#f92672">]</span> <span style="color:#75715e"># 分享名</span>
+comment <span style="color:#f92672">=</span> 这是说明 
+browseable <span style="color:#f92672">=</span> yes <span style="color:#75715e"># 是否允许浏览查看</span>
+path <span style="color:#f92672">=</span> /home/pi/Downloads <span style="color:#75715e"># 分享目录</span>
+create mask <span style="color:#f92672">=</span> <span style="color:#ae81ff">0750</span> <span style="color:#75715e"># 创建文件默认掩码</span>
+read only <span style="color:#f92672">=</span> yes <span style="color:#75715e"># 只读</span>
+guest ok <span style="color:#f92672">=</span> yes <span style="color:#75715e"># 是否允许游客登录</span>
+public <span style="color:#f92672">=</span> yes <span style="color:#75715e"># 同上</span>
+</code></pre></div><h4 id="运行-1">运行</h4>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">systemctl start smbd <span style="color:#75715e"># 注意了,samba服务对应的是smbd</span>
+</code></pre></div><h4 id="查看">查看</h4>
+<ul>
+<li>Windows 打开文件管理器,在地址栏输入 <code>\\ip\</code>即可</li>
+<li>Android 可以下载ES文件管理器,支持查看smb局域网的文件,并在线播放</li>
+<li>Linux 以Ubuntu为例,打开文件管理器,在 <code>Connect to Server</code> 输入 <code>smb://ip/</code>即可</li>
+</ul>
+<h2 id="总结">总结</h2>
+<p>OK,NAS和下载机搭建完成,但是这是仅限于局域网内控制的,如何在其他地点如公司远程提交下载任务呢,方法有二:</p>
+<ol>
+<li>使用迅雷远程下载,需要编译使用迅雷开源的xware程序,麻烦,而且&hellip;官方支持很不友好,并且远程下载意味着咱们的aria2下载白费功夫了&hellip;</li>
+<li>使用内网穿透,将树莓派的相关端口映射出去,如此,咱们就可以在公网上访问了,便可以控制提交远程下载了.详情请看下篇文章 <strong><a href="/2017/11/13/%E5%86%85%E7%BD%91%E7%A9%BF%E9%80%8Ffrp%E5%8F%8A%E6%A0%91%E8%8E%93%E6%B4%BE%E7%9A%84%E5%BA%94%E7%94%A8/">内网穿透frp及树莓派的应用</a></strong></li>
+</ol>
+
+
+
+
+      
+        <div class="blog-tags">
+          
+            <a
+              href="https://eoyohe.cn/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/"
+              >树莓派</a
+            >&nbsp;
+          
+        </div>
+      
+
+      
+    </article>
+    
+    
+      
+
+    
+  </div>
+
+    <footer>
+  
+
+<div class="social-icons">
+  
+
+  
+</div>
+
+
+  
+  <div class="container">
+    <p class="credits copyright">
+      <a href="https://eoyohe.cn/about"></a>
+      &nbsp;&copy;
+      2017 - 
+      2021
+      
+        &nbsp;/&nbsp;
+        <a href="https://eoyohe.cn/">粤ICP备2022033411号</a>
+      
+      &nbsp;&ndash;&nbsp;
+      <em class="fas fa-moon" id="dark-mode-toggle"></em>
+    </p>
+  </div>
+</footer>
+
+  </body>
+</html>

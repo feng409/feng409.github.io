@@ -1,0 +1,17 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+	<channel>
+		<title>laravel on chemf</title>
+		<link>https://eoyohe.cn/tags/laravel/</link>
+		<description>Recent content in laravel </description>
+		<generator>Hugo -- gohugo.io</generator>
+		
+  		<language>en-us</language>
+		
+		<managingEditor>Page(/tags/laravel)</managingEditor>
+    	
+  		<lastBuildDate>Fri, 18 Aug 2017 16:26:58 +0000</lastBuildDate>
+		
+		<atom:link href="/tags/laravel/" rel="self" type="application/rss+xml" />
+		
+	</channel>
+</rss>

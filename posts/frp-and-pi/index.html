@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8" />
+<title>内网穿透frp及树莓派的应用</title>
+<meta name="description" 
+      content=""
+>
+
+  
+
+
+
+
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link
+  rel="alternate"
+  type="application/rss+xml"
+  href="https://eoyohe.cn/index.xml"
+  title="chemf"
+/>
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="内网穿透frp及树莓派的应用"/>
+<meta name="twitter:description" content="实现远程添加下载任务和ssh远程控制内网机器"/>
+
+
+
+<link rel="stylesheet" href="https://eoyohe.cn/fontawesome/css/all.min.css" />
+
+
+
+
+<link
+  crossorigin="anonymous"
+  href="/css/styles.min.css"
+  integrity=""
+  rel="preload stylesheet"
+  as="style"
+/>
+
+
+
+
+<link
+  id="dark-mode-theme"
+  crossorigin="anonymous"
+  href="/css/dark.min.css"
+  integrity=""
+  rel="preload stylesheet"
+  as="style"
+/>
+
+
+<script>
+  var darkTheme = document.getElementById('dark-mode-theme')
+  var storedTheme = localStorage.getItem('dark-mode-storage')
+
+  if (storedTheme === 'dark') {
+    darkTheme.disabled = false
+  } else if (storedTheme === 'light') {
+    darkTheme.disabled = true
+  }
+</script>
+
+
+<script defer crossorigin="anonymous" src="/js/theme.js" integrity=""></script>
+
+
+<script defer crossorigin="anonymous" src="/js/instantpage.min.js" integrity=""></script><meta name="generator" content="Hugo 0.83.1" />
+  </head>
+  <body>
+    
+  
+
+
+
+
+  <header>
+    <nav class="navbar">
+  <div class="nav">
+    
+
+    <ul class="nav-links">
+      
+    </ul>
+  </div>
+</nav>
+
+    <div class="intro-header">
+      <div class="container">
+        <div class="posts-heading">
+          
+            <h1>
+              内网穿透frp及树莓派的应用
+            </h1>
+          
+          
+        </div>
+      </div>
+    </div>
+  </header>
+  
+
+    
+  <div class="container" role="main">
+    <article class="article" class="blog-post">
+      
+  <h2 id="前言">前言</h2>
+<blockquote>
+<p>在上一篇文章<a href="2017/11/01/%E6%A0%91%E8%8E%93%E6%B4%BE%E4%B9%8B%E4%B8%8B%E8%BD%BD%E6%9C%BA%E5%92%8CNAS%E6%9C%8D%E5%8A%A1%E5%99%A8/">树莓派之下载机和NAS服务器</a>中,我们介绍了怎么用树莓派搭建下载机,并且在局域网内可以在任何一台设备上添加下载服务,但是当我们不在家的时候,就没办法了,这样有点麻烦,比如在公司的时候,想远程下载一部电影,回家的时候可以看.对此,解决方法有两个:</p>
+<ul>
+<li>方法一:跟运营商要求一个公网IP,而后在路由器上进行端口映射到树莓派上,这样我们就可以通过公网IP访问我们的树莓派了.缺点是,一般运营商不给&hellip;很麻烦,或者当环境是内网并且路由器不是自己的,例如公司的,那就做不了主了</li>
+<li>方法二:进行内网穿透,将自己的一些提供外界访问的端口通过中转服务器穿透出去,这就是今天的主题了.</li>
+</ul>
+</blockquote>
+<h2 id="内网穿透介绍">内网穿透介绍</h2>
+<p>内网穿透说白了就是将自己的内网机器的端口,通过端口映射和外网机器连在一起,即访问外网的X端口即相当于访问内网的Y端口.</p>
+<p>内网穿透工具即第三方服务提供商介绍:</p>
+<ul>
+<li>
+<p><em><strong><a href="https://hsk.oray.com/">花生壳</a></strong></em><br>
+花生壳是国内的动态域名解析软件,即支持内网端口动态解析到某一个域名上,这应该是知名度最高的一个了吧,不过是收费的</p>
+</li>
+<li>
+<p><em><strong><a href="https://github.com/inconshreveable/ngrok/">ngrok</a></strong></em><br>
+ngrok是免费的开源软件,支持多端口映射,算是有点年代了,<a href="https://ngrok.com/">官网</a>提供免费的端口映射服务,不过免费账号或者游客账号只支持一个端口映射,有多端口映射需求的话,要么付费,要么自己搭建ngrok服务器,毕竟这是一个开源项目,有提供源码供编译运行.</p>
+</li>
+<li>
+<p><em><strong><a href="https://github.com/fatedier/frp">frp</a></strong></em><br>
+<strong>frp</strong>相对于<strong>ngrok</strong>算是一个新项目了,同样支持多端口映射,二级域名等功能,不过目前不知道有什么第三方服务商.博主是通过在自己服务器搭建运行的,下面就是讲解怎么在服务器搭建frp并且端口映射到树莓派</p>
+</li>
+</ul>
+<h2 id="搭建与运行">搭建与运行</h2>
+<p>frp提供发行版和源码编译步骤,编译就算了吧,有发行版直接拿来用就好了.<br>
+frp发行版<a href="https://github.com/fatedier/frp/releases">地址</a>,下载对应操作系统和CPU架构的就可以了,像我服务是下载amd64的,树莓派是arm的.</p>
+<h3 id="服务器端安装运行">服务器端安装运行</h3>
+<p>下载解压frp后,有服务器端和客户端各有三个文件,服务器是frps开头的文件,客户端是frpc,参考server和client两个单词还是比较形象的 0.0</p>
+<p>frps开头的文件,frps是二进制执行程序,frps.ini 和 frps_full.ini 同样是配置文件,不过frps.ini是基本的配置文件,frps_full.ini是完整的配置文件,包含各项配置参数.简单配置如下:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>common<span style="color:#f92672">]</span>
+bind_port <span style="color:#f92672">=</span> <span style="color:#ae81ff">7000</span> <span style="color:#75715e"># 服务器端口</span>
+privilege_token <span style="color:#f92672">=</span> ThisIsAToken <span style="color:#75715e"># token秘钥 </span>
+privilege_allow_ports <span style="color:#f92672">=</span> 7000-8000 <span style="color:#75715e"># 白名单端口,只允许服务器的这部分端口被映射出去</span>
+
+log_file <span style="color:#f92672">=</span> ./frps.log
+log_level <span style="color:#f92672">=</span> info
+
+dashboard_port <span style="color:#f92672">=</span> <span style="color:#ae81ff">7001</span> <span style="color:#75715e"># 控制面板端口</span>
+dashboard_user <span style="color:#f92672">=</span> account <span style="color:#75715e"># 控制面板登录账号</span>
+dashboard_pwd <span style="color:#f92672">=</span> password
+</code></pre></div><p>这里需要解释一下,frps运行后,如果没有限制白名单端口的话,客户端是可以指定任意端口连接映射的,这样会造成端口滥用不好管理,并且如果没有token验证,任何一台设备只要知道了你服务器IP都可以将你的服务器作为免费的端口映射中转服务器</p>
+<p>而后启动运行即可,这里就不作为服务通过systemctl启动了,用另一个神器 <strong><a href="https://tmux.github.io/">tmux</a></strong> ,终端复用神器,提供会话功能,即可实现关闭ssh连接后程序依然执行,比起自带的nohup强大的是不仅后台执行,而且可以随时切回前台.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sudo apt install tmux <span style="color:#75715e"># 安装tmux</span>
+tmux <span style="color:#75715e"># 直接启动一个会话,默认会话名是 0</span>
+./frps -c frps.ini <span style="color:#75715e"># 指定配置文件运行frps</span>
+<span style="color:#75715e"># 这时候使用快捷键 Ctrl+b d 即可将会话后台运行(detach).注:按住Ctrl和b键,松手,按d键</span>
+tmux attach -t <span style="color:#ae81ff">0</span> <span style="color:#75715e"># 回到刚才的会话(attach)的命令</span>
+</code></pre></div><h3 id="客户端安装运行">客户端安装运行</h3>
+<p>树莓派上下载解压arm版本,同样是一个客户端文件和服务器文件,这里同样我们自定义自己的配置文件</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># vim frpc.ini</span>
+<span style="color:#f92672">[</span>common<span style="color:#f92672">]</span>
+server_addr <span style="color:#f92672">=</span> x.x.x.x <span style="color:#75715e"># 这里为你的服务器IP</span>
+server_port <span style="color:#f92672">=</span> <span style="color:#ae81ff">7000</span>
+privilege_token <span style="color:#f92672">=</span> ThisIsAToken <span style="color:#75715e"># 服务器和客户端的 privilege_token需要一样才可以连接得上</span>
+
+<span style="color:#f92672">[</span>ssh<span style="color:#f92672">]</span>
+type <span style="color:#f92672">=</span> tcp
+local_ip <span style="color:#f92672">=</span> 127.0.0.1
+local_port <span style="color:#f92672">=</span> <span style="color:#ae81ff">22</span>
+remote_port <span style="color:#f92672">=</span> <span style="color:#ae81ff">7002</span>
+
+<span style="color:#f92672">[</span>http<span style="color:#f92672">]</span>
+type <span style="color:#f92672">=</span> tcp
+local_ip <span style="color:#f92672">=</span> 127.0.0.1
+local_port <span style="color:#f92672">=</span> <span style="color:#ae81ff">80</span>
+remote_port <span style="color:#f92672">=</span> <span style="color:#ae81ff">7003</span>
+
+<span style="color:#f92672">[</span>rpc<span style="color:#f92672">]</span>
+local_ip <span style="color:#f92672">=</span> 127.0.0.1
+local_port <span style="color:#f92672">=</span> <span style="color:#ae81ff">6800</span>
+remote_port <span style="color:#f92672">=</span> <span style="color:#ae81ff">7004</span>
+</code></pre></div><p>而后通过 <strong>tmux</strong> 运行 frpc -c frpc.ini 命令就可以了</p>
+<h3 id="dashboard">Dashboard</h3>
+<p>当frps服务器端程序运行后,我们上面已经配置了 <strong>Dashboard</strong> 的端口和账号了,即可通过浏览器输入 x.x.x.x:dashboard_port 查看frp状态,查看客户端是否连接上来了,以及流量统计</p>
+<h3 id="树莓派aria2的应用">树莓派aria2的应用</h3>
+<p>通过上面的配置,我们将树莓派的80端口和6800端口映射出去了<br>
+有人可能会问,映射80端口不就好了,事实上,为了远程下载,80端口反而是非必须的,因为在上一篇文章我们介绍过了,<strong>aria2</strong> 远程下载的实现是通过rpc远程调用机制实现的,因此, <strong>webui-aria2</strong> 项目只是一个通过js实现 <strong>aria2</strong> 远程调用的一个应用,假设我们自己的电脑也有 <strong>webui-aria2</strong> 的话,只需浏览器打开,在 <strong>webui-aria2</strong> 的设置-连接设置添加 <strong>aria2</strong> 的rpc端口即可.如图所示:</p>
+<p><img src="/img/rpc-connect-setting.png" alt=""></p>
+<p>这是我在本地 127.0.0.1 打开后设置rpc,即可连接树莓派的 <strong>aria2</strong> 了</p>
+<p>扯远了,假设现在是在手机端,没有安装连接 <strong>aria2</strong> rpc的软件,这时候就依旧用树莓派的就可以了,打开树莓派的http端口,因为做了端口映射,所以在浏览器输入 x.x.x.x:7003 就是了,<strong>webui-aria2</strong> 默认的rpc端口就是当前地址下的6800端口,但因为我们是做了端口映射处理,所以这里在 设置-连接设置处把rpc端口改为 7004 就可以了,如上图所示.</p>
+<h2 id="总结">总结</h2>
+<p>至此,我们的树莓派就可以在何地何处都能远程添加下载任务了,并且我们映射了ssh的22端口出去,也可以远程通过ssh控制树莓派,perfect!</p>
+
+
+
+
+      
+        <div class="blog-tags">
+          
+            <a
+              href="https://eoyohe.cn/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/"
+              >树莓派</a
+            >&nbsp;
+          
+        </div>
+      
+
+      
+    </article>
+    
+    
+      
+
+    
+  </div>
+
+    <footer>
+  
+
+<div class="social-icons">
+  
+
+  
+</div>
+
+
+  
+  <div class="container">
+    <p class="credits copyright">
+      <a href="https://eoyohe.cn/about"></a>
+      &nbsp;&copy;
+      2017 - 
+      2021
+      
+        &nbsp;/&nbsp;
+        <a href="https://eoyohe.cn/">粤ICP备2022033411号</a>
+      
+      &nbsp;&ndash;&nbsp;
+      <em class="fas fa-moon" id="dark-mode-toggle"></em>
+    </p>
+  </div>
+</footer>
+
+  </body>
+</html>

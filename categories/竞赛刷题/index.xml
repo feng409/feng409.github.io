@@ -1,0 +1,17 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+	<channel>
+		<title>竞赛刷题 on chemf</title>
+		<link>https://eoyohe.cn/categories/%E7%AB%9E%E8%B5%9B%E5%88%B7%E9%A2%98/</link>
+		<description>Recent content in 竞赛刷题 </description>
+		<generator>Hugo -- gohugo.io</generator>
+		
+  		<language>en-us</language>
+		
+		<managingEditor>Page(/categories/竞赛刷题)</managingEditor>
+    	
+  		<lastBuildDate>Mon, 04 Sep 2017 23:49:20 +0000</lastBuildDate>
+		
+		<atom:link href="/categories/%E7%AB%9E%E8%B5%9B%E5%88%B7%E9%A2%98/" rel="self" type="application/rss+xml" />
+		
+	</channel>
+</rss>

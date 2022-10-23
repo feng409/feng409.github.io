@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8" />
+<title>解决ssh自动掉线问题</title>
+<meta name="description" 
+      content="解决ssh闲置自动超时"
+>
+
+  
+
+
+
+
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link
+  rel="alternate"
+  type="application/rss+xml"
+  href="https://eoyohe.cn/index.xml"
+  title="chemf"
+/>
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="解决ssh自动掉线问题"/>
+<meta name="twitter:description" content="解决ssh闲置自动超时"/>
+
+
+
+<link rel="stylesheet" href="https://eoyohe.cn/fontawesome/css/all.min.css" />
+
+
+
+
+<link
+  crossorigin="anonymous"
+  href="/css/styles.min.css"
+  integrity=""
+  rel="preload stylesheet"
+  as="style"
+/>
+
+
+
+
+<link
+  id="dark-mode-theme"
+  crossorigin="anonymous"
+  href="/css/dark.min.css"
+  integrity=""
+  rel="preload stylesheet"
+  as="style"
+/>
+
+
+<script>
+  var darkTheme = document.getElementById('dark-mode-theme')
+  var storedTheme = localStorage.getItem('dark-mode-storage')
+
+  if (storedTheme === 'dark') {
+    darkTheme.disabled = false
+  } else if (storedTheme === 'light') {
+    darkTheme.disabled = true
+  }
+</script>
+
+
+<script defer crossorigin="anonymous" src="/js/theme.js" integrity=""></script>
+
+
+<script defer crossorigin="anonymous" src="/js/instantpage.min.js" integrity=""></script><meta name="generator" content="Hugo 0.83.1" />
+  </head>
+  <body>
+    
+  
+
+
+
+
+  <header>
+    <nav class="navbar">
+  <div class="nav">
+    
+
+    <ul class="nav-links">
+      
+    </ul>
+  </div>
+</nav>
+
+    <div class="intro-header">
+      <div class="container">
+        <div class="posts-heading">
+          
+            <h1>
+              解决ssh自动掉线问题
+            </h1>
+          
+          
+        </div>
+      </div>
+    </div>
+  </header>
+  
+
+    
+  <div class="container" role="main">
+    <article class="article" class="blog-post">
+      
+  <h3 id="问题描述">问题描述</h3>
+<p>ssh在一段时间没有操作输入时将会掉线,原因是 <strong>在防火墙中会有闲置超时断开</strong> 的默认机制<br>
+因此,在解决 <strong>闲置超时断开</strong> 问题,可以采用定时发送心跳包的方式解决</p>
+<h3 id="服务器端解决方法">服务器端解决方法:</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#75715e"># /etc/ssh/sshd_config</span>
+TCPKeepAlive yes
+ClientAliveInterval <span style="color:#ae81ff">300</span>
+ClientAliveCountMax <span style="color:#ae81ff">3</span>
+</code></pre></div><p>在服务器端ssh配置文件添加上述内容.其中,<br>
+<em><strong>TCPKeepAlice yes</strong></em> 表示TCP连接保持不断开<br>
+<em><strong>ClientAliveInterval 300</strong></em> 表示每个300秒向客户端发送心跳包,然后等待客户度响应,成功则保持连接<br>
+<em><strong>ClientAliveCountMax 3</strong></em> 表示客户端无响应的情况下最多尝试请求次数,超过则自动断开<br>
+最后,重启sshd服务:<br>
+<code>sudo systemctl restart ssh.service</code></p>
+<h3 id="客户端解决方法">客户端解决方法:</h3>
+<ul>
+<li>配置文件解决:
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">ServerAliveInterval <span style="color:#ae81ff">60</span>
+ServerAliveCountMax <span style="color:#ae81ff">3</span>
+</code></pre></div><p><em><strong>ServerAliveInterval 60</strong></em> 表示每隔60秒向服务器端发送心跳包<br>
+<em><strong>ServerAliveCountMax 3</strong></em> 表示无响应最多尝试次数</p>
+</li>
+<li>连接参数解决:<br>
+<code>ssh -o ServerAliveInterval=30 user@host</code></li>
+</ul>
+
+
+
+
+      
+        <div class="blog-tags">
+          
+            <a
+              href="https://eoyohe.cn/tags/ssh/"
+              >ssh</a
+            >&nbsp;
+          
+            <a
+              href="https://eoyohe.cn/tags/linux/"
+              >Linux</a
+            >&nbsp;
+          
+        </div>
+      
+
+      
+    </article>
+    
+    
+      
+
+    
+  </div>
+
+    <footer>
+  
+
+<div class="social-icons">
+  
+
+  
+</div>
+
+
+  
+  <div class="container">
+    <p class="credits copyright">
+      <a href="https://eoyohe.cn/about"></a>
+      &nbsp;&copy;
+      2017 - 
+      2021
+      
+        &nbsp;/&nbsp;
+        <a href="https://eoyohe.cn/">粤ICP备2022033411号</a>
+      
+      &nbsp;&ndash;&nbsp;
+      <em class="fas fa-moon" id="dark-mode-toggle"></em>
+    </p>
+  </div>
+</footer>
+
+  </body>
+</html>

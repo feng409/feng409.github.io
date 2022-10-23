@@ -1,0 +1,17 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+	<channel>
+		<title>Posts on chemf</title>
+		<link>https://eoyohe.cn/posts/</link>
+		<description>Recent content in Posts </description>
+		<generator>Hugo -- gohugo.io</generator>
+		
+  		<language>en-us</language>
+		
+		<managingEditor>Page(/posts)</managingEditor>
+    	
+  		<lastBuildDate>Fri, 02 Jul 2021 23:14:45 +0000</lastBuildDate>
+		
+		<atom:link href="/posts/" rel="self" type="application/rss+xml" />
+		
+	</channel>
+</rss>

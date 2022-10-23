@@ -1,0 +1,17 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+	<channel>
+		<title>command on chemf</title>
+		<link>https://eoyohe.cn/tags/command/</link>
+		<description>Recent content in command </description>
+		<generator>Hugo -- gohugo.io</generator>
+		
+  		<language>en-us</language>
+		
+		<managingEditor>Page(/tags/command)</managingEditor>
+    	
+  		<lastBuildDate>Sat, 26 May 2018 16:39:28 +0000</lastBuildDate>
+		
+		<atom:link href="/tags/command/" rel="self" type="application/rss+xml" />
+		
+	</channel>
+</rss>

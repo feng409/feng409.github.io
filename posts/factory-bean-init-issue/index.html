@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8" />
+<title>Spring FactoryBean 初始化问题</title>
+<meta name="description" 
+      content=""
+>
+
+  
+
+
+
+
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link
+  rel="alternate"
+  type="application/rss+xml"
+  href="https://eoyohe.cn/index.xml"
+  title="chemf"
+/>
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Spring FactoryBean 初始化问题"/>
+<meta name="twitter:description" content="spring spring 依赖注入的些许小坑"/>
+
+
+
+<link rel="stylesheet" href="https://eoyohe.cn/fontawesome/css/all.min.css" />
+
+
+
+
+<link
+  crossorigin="anonymous"
+  href="/css/styles.min.css"
+  integrity=""
+  rel="preload stylesheet"
+  as="style"
+/>
+
+
+
+
+<link
+  id="dark-mode-theme"
+  crossorigin="anonymous"
+  href="/css/dark.min.css"
+  integrity=""
+  rel="preload stylesheet"
+  as="style"
+/>
+
+
+<script>
+  var darkTheme = document.getElementById('dark-mode-theme')
+  var storedTheme = localStorage.getItem('dark-mode-storage')
+
+  if (storedTheme === 'dark') {
+    darkTheme.disabled = false
+  } else if (storedTheme === 'light') {
+    darkTheme.disabled = true
+  }
+</script>
+
+
+<script defer crossorigin="anonymous" src="/js/theme.js" integrity=""></script>
+
+
+<script defer crossorigin="anonymous" src="/js/instantpage.min.js" integrity=""></script><meta name="generator" content="Hugo 0.83.1" />
+  </head>
+  <body>
+    
+  
+
+
+
+
+  <header>
+    <nav class="navbar">
+  <div class="nav">
+    
+
+    <ul class="nav-links">
+      
+    </ul>
+  </div>
+</nav>
+
+    <div class="intro-header">
+      <div class="container">
+        <div class="posts-heading">
+          
+            <h1>
+              Spring FactoryBean 初始化问题
+            </h1>
+          
+          
+        </div>
+      </div>
+    </div>
+  </header>
+  
+
+    
+  <div class="container" role="main">
+    <article class="article" class="blog-post">
+      
+  <h2 id="前提">前提</h2>
+<p>项目使用了 EBean 框架作为数据库依赖管理，通过 FactoryBean 接口，实现了 Ebean Server 的配置初始化操作。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-kotlin" data-lang="kotlin"><span style="color:#a6e22e">@Component</span>
+<span style="color:#a6e22e">@Qualifier</span>(<span style="color:#e6db74">&#34;defaultDatabase&#34;</span>)
+<span style="color:#a6e22e">@Primary</span>
+<span style="color:#66d9ef">class</span> <span style="color:#a6e22e">EbeanDatabaseFactory</span>(
+        <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">val</span> primaryDataSource: DataSource
+) : FactoryBean&lt;Database&gt; {
+  <span style="color:#66d9ef">override</span> <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">getObject</span>(): Database? =
+          DatabaseConfig()
+                  .apply {
+                    dataSource = primaryDataSource
+                    isDdlRun = <span style="color:#66d9ef">false</span>
+                    isDdlGenerate = <span style="color:#66d9ef">false</span>
+                    isDefaultServer = <span style="color:#66d9ef">true</span>
+                    namingConvention = UnderscoreNamingConvention()
+                    name = <span style="color:#e6db74">&#34;defaultDatabase&#34;</span>
+                  }
+                  .let(DatabaseFactory<span style="color:#f92672">::</span>create)
+
+  <span style="color:#66d9ef">override</span> <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">getObjectType</span>(): Class&lt;*&gt;? = Database<span style="color:#f92672">::</span><span style="color:#66d9ef">class</span>.java
+
+  <span style="color:#66d9ef">override</span> <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">isSingleton</span>(): Boolean = <span style="color:#66d9ef">true</span>
+</code></pre></div><h2 id="问题描述">问题描述</h2>
+<p>在 ORM 层，通过获取 <code>Database</code> 对象做数据库操作</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-kotlin" data-lang="kotlin"><span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">poloDatabase</span>(): Database {
+  <span style="color:#66d9ef">return</span> DB.byName(<span style="color:#e6db74">&#34;defaultDatabase&#34;</span>)
+}
+</code></pre></div><p>出现报错：</p>
+<pre><code>Caused by: io.ebean.datasource.DataSourceConfigurationException: Configuration error creating DataSource for the default Database. This typically means a missing application-test.yaml or missing ebean-test-config dependency. See https://ebean.io/docs/trouble-shooting#datasource
+	at io.ebean.Ebean$ServerManager.&lt;init&gt;(Ebean.java:87)
+	at io.ebean.Ebean$ServerManager.&lt;init&gt;(Ebean.java:50)
+	at io.ebean.Ebean.&lt;clinit&gt;(Ebean.java:45)
+	... 70 common frames omitted
+Caused by: io.ebean.datasource.DataSourceConfigurationException: DataSource user is null?
+	at io.ebean.datasource.pool.ConnectionPool.&lt;init&gt;(ConnectionPool.java:220)
+	at io.ebean.datasource.core.Factory.createPool(Factory.java:15)
+	at io.ebeaninternal.server.core.DefaultContainer.getDataSourceFromConfig(DefaultContainer.java:290)
+	at io.ebeaninternal.server.core.DefaultContainer.setDataSource(DefaultContainer.java:234)
+	at io.ebeaninternal.server.core.DefaultContainer.createServer(DefaultContainer.java:100)
+	at io.ebeaninternal.server.core.DefaultContainer.createServer(DefaultContainer.java:70)
+	at io.ebeaninternal.server.core.DefaultContainer.createServer(DefaultContainer.java:36)
+	at io.ebean.EbeanServerFactory.create(EbeanServerFactory.java:58)
+	at io.ebean.Ebean$ServerManager.getWithCreate(Ebean.java:128)
+	at io.ebean.Ebean$ServerManager.&lt;init&gt;(Ebean.java:77)
+	... 72 common frames omitted
+</code></pre><h2 id="问题排查">问题排查</h2>
+<p>在 <code>FactoryBean.getObject</code> 打断点排查没有执行到该方法，既 <strong>数据库没有初始化</strong>。</p>
+<p>怀疑是生命周期问题，导致没有注入依赖。</p>
+<p>查找官方 spring 文档，发现以下说明</p>
+<blockquote>
+<p>A standard FactoryBean is not expected to initialize eagerly: Its <a href="https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/beans/factory/FactoryBean.html#getObject--"><code>FactoryBean.getObject()</code></a> will only be called for actual access, even in case of a singleton object.</p>
+</blockquote>
+<p>即 FactoryBean.getObject 需要显式调用。</p>
+<h3 id="为何之前没有这个问题">为何之前没有这个问题</h3>
+<p>之前在代码中显式要求依赖注入了</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-kotlin" data-lang="kotlin"><span style="color:#a6e22e">@Component</span>
+<span style="color:#66d9ef">class</span> <span style="color:#a6e22e">UserArgumentResolver</span>(
+        <span style="color:#a6e22e">@Qualifier</span>(<span style="color:#e6db74">&#34;defaultDatabase&#34;</span>) <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">var</span> poloDatabase: Database
+): HandlerMethodArgumentResolver {
+</code></pre></div><h2 id="问题解决">问题解决</h2>
+<p>显式调用，或者显式依赖注入，在这里感觉有点多余。</p>
+<p>在 <code>FactoryBean</code> 下有个子接口，<code>SmartFactoryBean</code> 实现了 eagerInit 。</p>
+<p>因此，数据库 Bean 改为实现该接口。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-kotlin" data-lang="kotlin"><span style="color:#a6e22e">@Component</span>
+<span style="color:#a6e22e">@Qualifier</span>(<span style="color:#e6db74">&#34;defaultDatabase&#34;</span>)
+<span style="color:#a6e22e">@Primary</span>
+<span style="color:#66d9ef">class</span> <span style="color:#a6e22e">EbeanDatabaseFactory</span>(
+        <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">val</span> primaryDataSource: DataSource
+) : SmartFactoryBean&lt;Database&gt; {
+  <span style="color:#66d9ef">override</span> <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">getObject</span>(): Database? =
+          DatabaseConfig()
+                  .apply {
+                    dataSource = primaryDataSource
+                    isDdlRun = <span style="color:#66d9ef">false</span>
+                    isDdlGenerate = <span style="color:#66d9ef">false</span>
+                    isDefaultServer = <span style="color:#66d9ef">true</span>
+                    namingConvention = UnderscoreNamingConvention()
+                    name = <span style="color:#e6db74">&#34;defaultDatabase&#34;</span>
+                  }
+                  .let(DatabaseFactory<span style="color:#f92672">::</span>create)
+
+  <span style="color:#66d9ef">override</span> <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">getObjectType</span>(): Class&lt;*&gt;? = Database<span style="color:#f92672">::</span><span style="color:#66d9ef">class</span>.java
+
+  <span style="color:#66d9ef">override</span> <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">isSingleton</span>(): Boolean = <span style="color:#66d9ef">true</span>
+
+  <span style="color:#66d9ef">override</span> <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">isPrototype</span>(): Boolean = <span style="color:#66d9ef">true</span>
+
+  <span style="color:#66d9ef">override</span> <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">isEagerInit</span>(): Boolean = <span style="color:#66d9ef">true</span>
+}
+</code></pre></div>
+
+
+
+      
+        <div class="blog-tags">
+          
+            <a
+              href="https://eoyohe.cn/tags/spring/"
+              >Spring</a
+            >&nbsp;
+          
+        </div>
+      
+
+      
+    </article>
+    
+    
+      
+
+    
+  </div>
+
+    <footer>
+  
+
+<div class="social-icons">
+  
+
+  
+</div>
+
+
+  
+  <div class="container">
+    <p class="credits copyright">
+      <a href="https://eoyohe.cn/about"></a>
+      &nbsp;&copy;
+      2017 - 
+      2021
+      
+        &nbsp;/&nbsp;
+        <a href="https://eoyohe.cn/">粤ICP备2022033411号</a>
+      
+      &nbsp;&ndash;&nbsp;
+      <em class="fas fa-moon" id="dark-mode-toggle"></em>
+    </p>
+  </div>
+</footer>
+
+  </body>
+</html>

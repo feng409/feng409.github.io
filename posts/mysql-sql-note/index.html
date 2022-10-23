@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8" />
+<title>mysql日常笔记</title>
+<meta name="description" 
+      content=""
+>
+
+  
+
+
+
+
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link
+  rel="alternate"
+  type="application/rss+xml"
+  href="https://eoyohe.cn/index.xml"
+  title="chemf"
+/>
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="mysql日常笔记"/>
+<meta name="twitter:description" content="一个初学者的语法记录"/>
+
+
+
+<link rel="stylesheet" href="https://eoyohe.cn/fontawesome/css/all.min.css" />
+
+
+
+
+<link
+  crossorigin="anonymous"
+  href="/css/styles.min.css"
+  integrity=""
+  rel="preload stylesheet"
+  as="style"
+/>
+
+
+
+
+<link
+  id="dark-mode-theme"
+  crossorigin="anonymous"
+  href="/css/dark.min.css"
+  integrity=""
+  rel="preload stylesheet"
+  as="style"
+/>
+
+
+<script>
+  var darkTheme = document.getElementById('dark-mode-theme')
+  var storedTheme = localStorage.getItem('dark-mode-storage')
+
+  if (storedTheme === 'dark') {
+    darkTheme.disabled = false
+  } else if (storedTheme === 'light') {
+    darkTheme.disabled = true
+  }
+</script>
+
+
+<script defer crossorigin="anonymous" src="/js/theme.js" integrity=""></script>
+
+
+<script defer crossorigin="anonymous" src="/js/instantpage.min.js" integrity=""></script><meta name="generator" content="Hugo 0.83.1" />
+  </head>
+  <body>
+    
+  
+
+
+
+
+  <header>
+    <nav class="navbar">
+  <div class="nav">
+    
+
+    <ul class="nav-links">
+      
+    </ul>
+  </div>
+</nav>
+
+    <div class="intro-header">
+      <div class="container">
+        <div class="posts-heading">
+          
+            <h1>
+              mysql日常笔记
+            </h1>
+          
+          
+        </div>
+      </div>
+    </div>
+  </header>
+  
+
+    
+  <div class="container" role="main">
+    <article class="article" class="blog-post">
+      
+  <ul>
+<li>创建数据库并指明utf8编码(否则中文乱码)
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-mysql" data-lang="mysql"><span style="color:#66d9ef">CREATE</span> <span style="color:#66d9ef">DATABASE</span> <span style="color:#960050;background-color:#1e0010">数据库名</span> <span style="color:#66d9ef">DEFAULT</span> <span style="color:#66d9ef">CHARACTER</span> <span style="color:#66d9ef">SET</span> utf8 <span style="color:#66d9ef">COLLATE</span> utf8_general_ci;
+</code></pre></div></li>
+<li>删除数据库
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-mysql" data-lang="mysql"><span style="color:#66d9ef">DROP</span> <span style="color:#66d9ef">DATABASE</span> <span style="color:#960050;background-color:#1e0010">数据库名</span>;
+</code></pre></div></li>
+<li>创建用户
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-mysql" data-lang="mysql"><span style="color:#66d9ef">CREATE</span> <span style="color:#e6db74">&#39;用户名&#39;</span><span style="color:#f92672">@</span><span style="color:#e6db74">&#39;主机名&#39;</span> <span style="color:#66d9ef">IDENTIFIED</span> <span style="color:#66d9ef">BY</span> <span style="color:#e6db74">&#39;密码&#39;</span>;
+<span style="color:#75715e">-- 主机名是用 % 表示通配符允许所有主机 localhost 表示本地主机
+</span></code></pre></div></li>
+<li>用户授权
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-mysql" data-lang="mysql"><span style="color:#66d9ef">GRANT</span> <span style="color:#66d9ef">PRIVILEGES</span> <span style="color:#66d9ef">ON</span> <span style="color:#960050;background-color:#1e0010">数据库名</span>.<span style="color:#960050;background-color:#1e0010">数据库表</span> <span style="color:#66d9ef">TO</span> <span style="color:#e6db74">&#39;用户名&#39;</span><span style="color:#f92672">@</span><span style="color:#e6db74">&#39;主机名&#39;</span>
+<span style="color:#75715e">-- 这里的PRIVILEGES 指insert delete等权限，下附权限表 ALL PRIVILEGES表示所有权限
+</span><span style="color:#75715e">-- eg:
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">GRANT</span> <span style="color:#66d9ef">INSERT</span> <span style="color:#66d9ef">DELETE</span> <span style="color:#66d9ef">ON</span> <span style="color:#960050;background-color:#1e0010">数据库名</span>.<span style="color:#960050;background-color:#1e0010">数据库表</span> <span style="color:#66d9ef">TO</span> <span style="color:#e6db74">&#39;用户名&#39;</span><span style="color:#f92672">@</span><span style="color:#e6db74">&#39;主机名&#39;</span>
+<span style="color:#66d9ef">GRANT</span> <span style="color:#66d9ef">ALL</span> <span style="color:#66d9ef">PRIVILEGES</span> <span style="color:#66d9ef">ON</span> <span style="color:#960050;background-color:#1e0010">数据库名</span>.<span style="color:#960050;background-color:#1e0010">数据库表</span> <span style="color:#66d9ef">TO</span> <span style="color:#e6db74">&#39;用户名&#39;</span><span style="color:#f92672">@</span><span style="color:#e6db74">&#39;主机名&#39;</span>
+</code></pre></div></li>
+</ul>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">权限</th>
+<th style="text-align:center">权限级别</th>
+<th style="text-align:center">权限说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">CREATE</td>
+<td style="text-align:center">数据库、表或索引</td>
+<td style="text-align:center">创建数据库、表或索引权限</td>
+</tr>
+<tr>
+<td style="text-align:center">DROP</td>
+<td style="text-align:center">数据库或表</td>
+<td style="text-align:center">删除数据库或表权限</td>
+</tr>
+<tr>
+<td style="text-align:center">GRANT OPTION</td>
+<td style="text-align:center">数据库、表或保存的程序</td>
+<td style="text-align:center">赋予权限选项</td>
+</tr>
+<tr>
+<td style="text-align:center">REFERENCES</td>
+<td style="text-align:center">数据库或表</td>
+<td style="text-align:center"></td>
+</tr>
+<tr>
+<td style="text-align:center">ALTER</td>
+<td style="text-align:center">表</td>
+<td style="text-align:center">更改表，比如添加字段、索引等</td>
+</tr>
+<tr>
+<td style="text-align:center">DELETE</td>
+<td style="text-align:center">表</td>
+<td style="text-align:center">删除数据权限</td>
+</tr>
+<tr>
+<td style="text-align:center">INDEX</td>
+<td style="text-align:center">表</td>
+<td style="text-align:center">索引权限</td>
+</tr>
+<tr>
+<td style="text-align:center">INSERT</td>
+<td style="text-align:center">表</td>
+<td style="text-align:center">插入权限</td>
+</tr>
+<tr>
+<td style="text-align:center">SELECT</td>
+<td style="text-align:center">表</td>
+<td style="text-align:center">查询权限</td>
+</tr>
+<tr>
+<td style="text-align:center">UPDATE</td>
+<td style="text-align:center">存储过程</td>
+<td style="text-align:center">更新权限</td>
+</tr>
+<tr>
+<td style="text-align:center">CREATE VIEW</td>
+<td style="text-align:center">视图</td>
+<td style="text-align:center">创建视图权限</td>
+</tr>
+<tr>
+<td style="text-align:center">SHOW VIEW</td>
+<td style="text-align:center">视图</td>
+<td style="text-align:center">查看视图权限</td>
+</tr>
+<tr>
+<td style="text-align:center">ALTER ROUTINE</td>
+<td style="text-align:center">存储过程</td>
+<td style="text-align:center">更改存储过程权限</td>
+</tr>
+<tr>
+<td style="text-align:center">CREATE ROUTINE</td>
+<td style="text-align:center">存储过程</td>
+<td style="text-align:center">创建存储过程权限</td>
+</tr>
+<tr>
+<td style="text-align:center">EXECUTE</td>
+<td style="text-align:center">存储过程</td>
+<td style="text-align:center">执行存储过程权限</td>
+</tr>
+<tr>
+<td style="text-align:center">FILE</td>
+<td style="text-align:center">服务器主机上的文件访问</td>
+<td style="text-align:center">文件访问权限</td>
+</tr>
+<tr>
+<td style="text-align:center">CREATE TEMPORARY TABLES</td>
+<td style="text-align:center">服务器管理</td>
+<td style="text-align:center">创建临时表权限</td>
+</tr>
+<tr>
+<td style="text-align:center">LOCK TABLES</td>
+<td style="text-align:center">服务器管理</td>
+<td style="text-align:center">锁表权限</td>
+</tr>
+<tr>
+<td style="text-align:center">CREATE USER</td>
+<td style="text-align:center">服务器管理</td>
+<td style="text-align:center">创建用户权限</td>
+</tr>
+<tr>
+<td style="text-align:center">PROCESS</td>
+<td style="text-align:center">服务器管理</td>
+<td style="text-align:center">查看进程权限</td>
+</tr>
+<tr>
+<td style="text-align:center">RELOAD</td>
+<td style="text-align:center">服务器管理</td>
+<td style="text-align:center">执行flush-hosts, flush-logs, flush-privileges, flush-status, flush-tables, flush-threads, refresh, reload等命令的权限</td>
+</tr>
+<tr>
+<td style="text-align:center">REPLICATION CLIENT</td>
+<td style="text-align:center">服务器管理</td>
+<td style="text-align:center">复制权限</td>
+</tr>
+<tr>
+<td style="text-align:center">REPLICATION SLAVE</td>
+<td style="text-align:center">服务器管理</td>
+<td style="text-align:center">复制权限</td>
+</tr>
+<tr>
+<td style="text-align:center">SHOW DATABASES</td>
+<td style="text-align:center">服务器管理</td>
+<td style="text-align:center">查看数据库权限</td>
+</tr>
+<tr>
+<td style="text-align:center">SHUTDOWN</td>
+<td style="text-align:center">服务器管理</td>
+<td style="text-align:center">关闭数据库权限</td>
+</tr>
+<tr>
+<td style="text-align:center">SUPER</td>
+<td style="text-align:center">服务器管理</td>
+<td style="text-align:center">执行kill线程权限</td>
+</tr>
+<tr>
+<td style="text-align:center">USAGE</td>
+<td style="text-align:center">服务器管理</td>
+<td style="text-align:center">没有权限</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<hr>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">权限分布</th>
+<th style="text-align:center">可能的设置的权限</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">表权限</td>
+<td style="text-align:center">&lsquo;Select&rsquo;, &lsquo;Insert&rsquo;, &lsquo;Update&rsquo;, &lsquo;Delete&rsquo;, &lsquo;Create&rsquo;, &lsquo;Drop&rsquo;, &lsquo;Grant&rsquo;, &lsquo;References&rsquo;, &lsquo;Index&rsquo;, &lsquo;Alter&rsquo;</td>
+</tr>
+<tr>
+<td style="text-align:center">列权限</td>
+<td style="text-align:center">&lsquo;Select&rsquo;, &lsquo;Insert&rsquo;, &lsquo;Update&rsquo;, &lsquo;References&rsquo;</td>
+</tr>
+<tr>
+<td style="text-align:center">过程权限</td>
+<td style="text-align:center">&lsquo;Execute&rsquo;, &lsquo;Alter Routine&rsquo;, &lsquo;Grant&rsquo;</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<ul>
+<li>权限相关
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-mysql" data-lang="mysql"><span style="color:#75715e">-- 刷新权限
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">flush</span> <span style="color:#66d9ef">privileges</span>;
+<span style="color:#75715e">-- 查看权限
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">show</span> grants;
+<span style="color:#75715e">-- 查看某个用户权限
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">show</span> grants <span style="color:#66d9ef">for</span> <span style="color:#e6db74">&#39;用户名&#39;</span><span style="color:#f92672">@</span><span style="color:#e6db74">&#39;主机名&#39;</span>;
+<span style="color:#75715e">-- 回收权限
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">REVOKE</span> <span style="color:#66d9ef">DELETE</span> <span style="color:#66d9ef">ON</span> <span style="color:#960050;background-color:#1e0010">数据库名</span>.<span style="color:#960050;background-color:#1e0010">表名</span> <span style="color:#66d9ef">FROM</span> <span style="color:#e6db74">&#39;用户名&#39;</span><span style="color:#f92672">@</span><span style="color:#e6db74">&#39;主机名&#39;</span>;
+<span style="color:#75715e">-- 删除用户
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">DROP</span> <span style="color:#66d9ef">USER</span> <span style="color:#e6db74">&#39;用户名&#39;</span><span style="color:#f92672">@</span><span style="color:#e6db74">&#39;主机名&#39;</span>
+<span style="color:#75715e">-- 账户重命名
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">RENAME</span> <span style="color:#66d9ef">USER</span> <span style="color:#e6db74">&#39;用户名&#39;</span><span style="color:#f92672">@</span><span style="color:#e6db74">&#39;主机名&#39;</span> <span style="color:#66d9ef">TO</span> <span style="color:#e6db74">&#39;新用户名&#39;</span><span style="color:#f92672">@</span><span style="color:#e6db74">&#39;新主机名&#39;</span>;
+<span style="color:#75715e">-- 修改密码
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">SET</span> PASSWORD <span style="color:#66d9ef">FOR</span> <span style="color:#e6db74">&#39;用户名&#39;</span><span style="color:#f92672">@</span><span style="color:#e6db74">&#39;主机名&#39;</span> <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;新密码&#39;</span>:
+<span style="color:#75715e">-- 查看所有用户
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">SELECT</span> <span style="color:#66d9ef">User</span> <span style="color:#66d9ef">FROM</span> mysql.<span style="color:#66d9ef">user</span>;
+<span style="color:#75715e">-- 查看所有数据库
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">SHOW</span> <span style="color:#66d9ef">DATABASES</span>;
+<span style="color:#75715e">-- 查看所有表名
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">SHOW</span> <span style="color:#66d9ef">TABLES</span>;
+</code></pre></div></li>
+<li>查看数据库或表创建语句
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-mysql" data-lang="mysql"><span style="color:#66d9ef">SHOW</span> <span style="color:#66d9ef">CREATE</span> <span style="color:#66d9ef">DATABASE</span> <span style="color:#960050;background-color:#1e0010">数据库名</span>;
+<span style="color:#66d9ef">SHOW</span> <span style="color:#66d9ef">CREATE</span> <span style="color:#66d9ef">TABLE</span> <span style="color:#960050;background-color:#1e0010">数据表名</span>;
+</code></pre></div></li>
+</ul>
+
+
+
+
+      
+        <div class="blog-tags">
+          
+            <a
+              href="https://eoyohe.cn/tags/mysql/"
+              >mysql</a
+            >&nbsp;
+          
+        </div>
+      
+
+      
+    </article>
+    
+    
+      
+
+    
+  </div>
+
+    <footer>
+  
+
+<div class="social-icons">
+  
+
+  
+</div>
+
+
+  
+  <div class="container">
+    <p class="credits copyright">
+      <a href="https://eoyohe.cn/about"></a>
+      &nbsp;&copy;
+      2017 - 
+      2021
+      
+        &nbsp;/&nbsp;
+        <a href="https://eoyohe.cn/">粤ICP备2022033411号</a>
+      
+      &nbsp;&ndash;&nbsp;
+      <em class="fas fa-moon" id="dark-mode-toggle"></em>
+    </p>
+  </div>
+</footer>
+
+  </body>
+</html>

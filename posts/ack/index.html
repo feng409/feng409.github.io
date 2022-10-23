@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8" />
+<title>awk命令使用实践</title>
+<meta name="description" 
+      content=""
+>
+
+  
+
+
+
+
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link
+  rel="alternate"
+  type="application/rss+xml"
+  href="https://eoyohe.cn/index.xml"
+  title="chemf"
+/>
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="awk命令使用实践"/>
+<meta name="twitter:description" content="一个初学者的 ack 命令用法记录"/>
+
+
+
+<link rel="stylesheet" href="https://eoyohe.cn/fontawesome/css/all.min.css" />
+
+
+
+
+<link
+  crossorigin="anonymous"
+  href="/css/styles.min.css"
+  integrity=""
+  rel="preload stylesheet"
+  as="style"
+/>
+
+
+
+
+<link
+  id="dark-mode-theme"
+  crossorigin="anonymous"
+  href="/css/dark.min.css"
+  integrity=""
+  rel="preload stylesheet"
+  as="style"
+/>
+
+
+<script>
+  var darkTheme = document.getElementById('dark-mode-theme')
+  var storedTheme = localStorage.getItem('dark-mode-storage')
+
+  if (storedTheme === 'dark') {
+    darkTheme.disabled = false
+  } else if (storedTheme === 'light') {
+    darkTheme.disabled = true
+  }
+</script>
+
+
+<script defer crossorigin="anonymous" src="/js/theme.js" integrity=""></script>
+
+
+<script defer crossorigin="anonymous" src="/js/instantpage.min.js" integrity=""></script><meta name="generator" content="Hugo 0.83.1" />
+  </head>
+  <body>
+    
+  
+
+
+
+
+  <header>
+    <nav class="navbar">
+  <div class="nav">
+    
+
+    <ul class="nav-links">
+      
+    </ul>
+  </div>
+</nav>
+
+    <div class="intro-header">
+      <div class="container">
+        <div class="posts-heading">
+          
+            <h1>
+              awk命令使用实践
+            </h1>
+          
+          
+        </div>
+      </div>
+    </div>
+  </header>
+  
+
+    
+  <div class="container" role="main">
+    <article class="article" class="blog-post">
+      
+  <blockquote>
+<p><code>awk</code> 算是个古老的命令了，上古神器。现在已经很少看到使用，可能我周围没什么运维的朋友吧，至少我周围没见到用这个命令，不过也确实有点不好学，所以记录下。</p>
+</blockquote>
+<h2 id="语法">语法</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">awk <span style="color:#f92672">[</span>options<span style="color:#f92672">]</span> <span style="color:#e6db74">&#39;script&#39;</span> var<span style="color:#f92672">=</span>value file<span style="color:#f92672">(</span>s<span style="color:#f92672">)</span>
+awk <span style="color:#f92672">[</span>options<span style="color:#f92672">]</span> -f scriptfile var<span style="color:#f92672">=</span>value file<span style="color:#f92672">(</span>s<span style="color:#f92672">)</span>
+</code></pre></div><h2 id="常用参数">常用参数</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">-F fs   fs指定输入分隔符，fs可以是字符串或正则表达式，如-F:，多个分隔符<span style="color:#f92672">(</span>例如:和制表符<span style="color:#f92672">)</span>为awk -F <span style="color:#e6db74">&#39;[:\t]&#39;</span> 或者 <span style="color:#e6db74">&#39;[:|\t]&#39;</span> 或者 <span style="color:#e6db74">&#39;[&#34;:&#34;|&#34;\t&#34;]&#39;</span>，表示没发现区别
+-v var<span style="color:#f92672">=</span>value   赋值一个用户定义变量，将外部变量传递给awk
+-f scripfile  从脚本文件中读取awk命令
+-m<span style="color:#f92672">[</span>fr<span style="color:#f92672">]</span> val   对val值设置内在限制，-mf选项限制分配给val的最大块数目；-mr选项限制记录的最大数目。这两个功能是Bell实验室版awk的扩展功能，在标准awk中不适用。
+</code></pre></div><h2 id="摘要介绍">摘要介绍</h2>
+<p>日常Linux流程，遇见不会的命令，先 <code>man command</code>，所以 <code>awk</code> 的文档介绍是这么写的 <code>mawk - pattern scanning and text processing language</code> 用我的菜鸡英语翻译就是：模式扫描和文本处理语言。</p>
+<p>是的，<code>awk</code> 并不是一个二进制程序命令，而是一门脚本语言，主要用来匹配处理文本，就像 <code>bash</code> 一样，同理 <code>bash</code> 有多个解释器: <code>zsh</code>, <code>fish</code> 等一样，<code>awk</code> 也有，例如我 <code>man awk</code> 看到的是 <code>mawk</code>，我的是Ubuntu16.04系统。因此既然 <code>awk</code> 是语言，<code>mawk</code> 是解释器而已，所以我们的操作可以是将 <code>awk</code> 代码直接在终端中使用，就像<code>bash</code>的 <code>echo 'hello world'</code>一样，也可以写成一个脚本，通过 <code>awk -f filename</code> 一样执行。</p>
+<p>awk的处理方式是从输入流从逐行读取文本，然后进行 <strong>模式-动作</strong> 流程,即</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">pattern    <span style="color:#f92672">{</span> action <span style="color:#f92672">}</span>
+</code></pre></div><p>小例子:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ ls | awk <span style="color:#e6db74">&#39;1 &lt; 2 {print &#34;废话&#34;}&#39;</span>
+废话
+</code></pre></div><p>这里的 <code>1 &lt; 2</code> 就是 <em>pattern</em> 了，而 <em>action</em> 要包裹在 <code>{}</code> 里面。</p>
+<h2 id="使用实践-剪切获取ifconfig中的ip地址">使用实践-剪切获取ifconfig中的ip地址</h2>
+<p>文本如下</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ ifconfig wlp8s0 
+wlp8s0    Link encap:Ethernet  HWaddr 5c:93:a2:76:e5:c1  
+          inet addr:192.168.123.111  Bcast:192.168.123.255  Mask:255.255.255.0
+          inet6 addr: fe80::44cd:39be:6aea:d61a/64 Scope:Link
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          RX packets:698409 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:353304 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:1000 
+          RX bytes:949454893 <span style="color:#f92672">(</span>949.4 MB<span style="color:#f92672">)</span>  TX bytes:38261895 <span style="color:#f92672">(</span>38.2 MB<span style="color:#f92672">)</span>
+</code></pre></div><p>简单的剪切思路，先通过正则表达式获取ip地址那一行，awk默认的分隔符是空格，所以很明显我们的ip地址在第二列。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ ifconfig wlp8s0 | awk <span style="color:#e6db74">&#39;$0 ~ /inet addr/ {printf $2}&#39;</span>
+addr:192.168.123.111
+</code></pre></div><p>解释如下:</p>
+<ul>
+<li><code>$0</code> 表示当前读取的整行，上面文本有</li>
+<li><code>~</code> 表示开启正则匹配</li>
+<li><code>/inet addr/</code> 正则匹配内容，表达式要写在//中间。即/pattern/</li>
+<li><code>{print $2}</code> 表示匹配成功的话打印当前行的第二列。$2是内键变量，参考下面附录</li>
+</ul>
+<p>接下来就很明显了，针对剪切出来的 <code>addr:192.168.123.111</code> 我们只需要以 <code>:</code> 为分隔符打印第二列就可以了。命令如下:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">ifconfig wlp8s0 | awk <span style="color:#e6db74">&#39;$0 ~ /inet addr/ {print $2}&#39;</span> | awk -F: <span style="color:#e6db74">&#39;{print $2}&#39;</span>
+</code></pre></div><h2 id="小提示">小提示：</h2>
+<ul>
+<li><strong>当把awk代码直接放在终端中使用时，建议使用 <code>'</code> 而不是 <code>&quot;</code> 包括起来，因为 <code>&quot;</code> 可能会被bash解析了变量$0之类</strong></li>
+<li><strong><code>print</code>和<code>printf</code>的区别在于<code>printf</code>可以格式化输出,但是<code>print</code>自带换行</strong></li>
+</ul>
+<p><code>printf</code> 示例如下</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># 打印行号</span>
+$ ls / | awk <span style="color:#e6db74">&#39;{printf &#34;%d  %s\n&#34;, NR, $0}&#39;</span> 
+行号:1  bin
+行号:2  boot
+行号:3  cdrom
+行号:4  dev
+行号:5  etc
+行号:6  home
+行号:7  initrd.img
+行号:8  initrd.img.old
+行号:9  lib
+行号:10  lib64
+行号:11  lost+found
+行号:12  media
+行号:13  mnt
+行号:14  opt
+行号:15  proc
+行号:16  root
+行号:17  run
+行号:18  sbin
+行号:19  snap
+行号:20  srv
+行号:21  sys
+行号:22  tmp
+行号:23  usr
+行号:24  var
+行号:25  vmlinuz
+行号:26  vmlinuz.old
+</code></pre></div><blockquote>
+<p>事实上这用 <code>nl</code> 命令即可了。</p>
+</blockquote>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">ls / | nl
+</code></pre></div><h2 id="附录-内键变量">附录-内键变量</h2>
+<table>
+<thead>
+<tr>
+<th>变量</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>$n</td>
+<td>当前记录的第n个字段，字段间由FS分隔</td>
+</tr>
+<tr>
+<td>$0</td>
+<td>完整的输入记录</td>
+</tr>
+<tr>
+<td>ARGC</td>
+<td>命令行参数的数目</td>
+</tr>
+<tr>
+<td>ARGIND</td>
+<td>命令行中当前文件的位置(从0开始算)</td>
+</tr>
+<tr>
+<td>ARGV</td>
+<td>包含命令行参数的数组</td>
+</tr>
+<tr>
+<td>CONVFMT</td>
+<td>数字转换格式(默认值为%.6g)ENVIRON环境变量关联数组</td>
+</tr>
+<tr>
+<td>ERRNO</td>
+<td>最后一个系统错误的描述</td>
+</tr>
+<tr>
+<td>FIELDWIDTHS</td>
+<td>字段宽度列表(用空格键分隔)</td>
+</tr>
+<tr>
+<td>FILENAME</td>
+<td>当前文件名</td>
+</tr>
+<tr>
+<td>FNR</td>
+<td>各文件分别计数的行号</td>
+</tr>
+<tr>
+<td>FS</td>
+<td>字段分隔符(默认是任何空格)</td>
+</tr>
+<tr>
+<td>IGNORECASE</td>
+<td>如果为真，则进行忽略大小写的匹配</td>
+</tr>
+<tr>
+<td>NF</td>
+<td>一条记录的字段的数目</td>
+</tr>
+<tr>
+<td>NR</td>
+<td>已经读出的记录数，就是行号，从1开始</td>
+</tr>
+<tr>
+<td>OFMT</td>
+<td>数字的输出格式(默认值是%.6g)</td>
+</tr>
+<tr>
+<td>OFS</td>
+<td>输出记录分隔符（输出换行符），输出时用指定的符号代替换行符</td>
+</tr>
+<tr>
+<td>ORS</td>
+<td>输出记录分隔符(默认值是一个换行符)</td>
+</tr>
+<tr>
+<td>RLENGTH</td>
+<td>由match函数所匹配的字符串的长度</td>
+</tr>
+<tr>
+<td>RS</td>
+<td>记录分隔符(默认是一个换行符)</td>
+</tr>
+<tr>
+<td>RSTART</td>
+<td>由match函数所匹配的字符串的第一个位置</td>
+</tr>
+<tr>
+<td>SUBSEP</td>
+<td>数组下标分隔符(默认值是/034)</td>
+</tr>
+</tbody>
+</table>
+
+
+
+
+      
+        <div class="blog-tags">
+          
+            <a
+              href="https://eoyohe.cn/tags/command/"
+              >command</a
+            >&nbsp;
+          
+        </div>
+      
+
+      
+    </article>
+    
+    
+      
+
+    
+  </div>
+
+    <footer>
+  
+
+<div class="social-icons">
+  
+
+  
+</div>
+
+
+  
+  <div class="container">
+    <p class="credits copyright">
+      <a href="https://eoyohe.cn/about"></a>
+      &nbsp;&copy;
+      2017 - 
+      2021
+      
+        &nbsp;/&nbsp;
+        <a href="https://eoyohe.cn/">粤ICP备2022033411号</a>
+      
+      &nbsp;&ndash;&nbsp;
+      <em class="fas fa-moon" id="dark-mode-toggle"></em>
+    </p>
+  </div>
+</footer>
+
+  </body>
+</html>

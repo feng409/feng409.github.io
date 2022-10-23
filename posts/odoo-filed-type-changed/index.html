@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8" />
+<title>odoo升级模块后字段为默认值问题修复</title>
+<meta name="description" 
+      content=""
+>
+
+  
+
+
+
+
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link
+  rel="alternate"
+  type="application/rss+xml"
+  href="https://eoyohe.cn/index.xml"
+  title="chemf"
+/>
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="odoo升级模块后字段为默认值问题修复"/>
+<meta name="twitter:description" content="数据库字段类型变成导致的血案"/>
+
+
+
+<link rel="stylesheet" href="https://eoyohe.cn/fontawesome/css/all.min.css" />
+
+
+
+
+<link
+  crossorigin="anonymous"
+  href="/css/styles.min.css"
+  integrity=""
+  rel="preload stylesheet"
+  as="style"
+/>
+
+
+
+
+<link
+  id="dark-mode-theme"
+  crossorigin="anonymous"
+  href="/css/dark.min.css"
+  integrity=""
+  rel="preload stylesheet"
+  as="style"
+/>
+
+
+<script>
+  var darkTheme = document.getElementById('dark-mode-theme')
+  var storedTheme = localStorage.getItem('dark-mode-storage')
+
+  if (storedTheme === 'dark') {
+    darkTheme.disabled = false
+  } else if (storedTheme === 'light') {
+    darkTheme.disabled = true
+  }
+</script>
+
+
+<script defer crossorigin="anonymous" src="/js/theme.js" integrity=""></script>
+
+
+<script defer crossorigin="anonymous" src="/js/instantpage.min.js" integrity=""></script><meta name="generator" content="Hugo 0.83.1" />
+  </head>
+  <body>
+    
+  
+
+
+
+
+  <header>
+    <nav class="navbar">
+  <div class="nav">
+    
+
+    <ul class="nav-links">
+      
+    </ul>
+  </div>
+</nav>
+
+    <div class="intro-header">
+      <div class="container">
+        <div class="posts-heading">
+          
+            <h1>
+              odoo升级模块后字段为默认值问题修复
+            </h1>
+          
+          
+        </div>
+      </div>
+    </div>
+  </header>
+  
+
+    
+  <div class="container" role="main">
+    <article class="article" class="blog-post">
+      
+  <h2 id="问题描述">问题描述：</h2>
+<p>升级了自己二开的发票模块后，出现原有发票数据的数量为0的情况</p>
+<h2 id="解决过程">解决过程：</h2>
+<ol>
+<li>
+<p>本地恢复线上升级前的数据库，并 <code>git</code> 切换到升级前的版本，模拟线上升级前的环境，开始升级</p>
+</li>
+<li>
+<p>由于是从 <code>master</code> 合并 <code>dev</code> 分支，<code>commit</code> 数有七八个，二分法通过<code>git checkout</code>切换版本升级，确定出现问题的 <code>commit</code></p>
+</li>
+<li>
+<p>第一次二分法升级后出现问题，重新初始化模拟环境继续二分法，结果没找到问题，一直<code>checkout</code>到最新代码都没有出现。查找异常 <code>commit</code> 失败</p>
+</li>
+<li>
+<p>重新初始化升级环境，直接升级到最新代码，检查log，搜索关键字，发现</p>
+<blockquote>
+<p>odoo.schema: Table ‘account_invoice_line'’: column ‘quantity’: dropped constraint NOT NULL
+odoo.schema: Table ‘account_invoice_line': renamed column ‘quantity’ to ‘&lsquo;quantity_moved1&rsquo;
+odoo.schema: Table ‘account_invoice_line': added column &lsquo;quantity&rsquo; of type int4</p>
+</blockquote>
+<p>该日志，确定问题为数据库字段发生变化，导致字段数据变为新字段默认值0</p>
+</li>
+<li>
+<p>查找该字段的代码，发现是重构了源码的字段，源码是 <code>Float</code> 类型，重构成了 <code>Integer</code> 类型，并添加注释为中文注释。猜测当时的情况应该只是想修改为中文注释…</p>
+</li>
+</ol>
+<h2 id="问题确定">问题确定</h2>
+<p>由于字段类型前后不一致，导致升级过程中，<code>odoo</code> 重命名了旧字段，创建新字段。</p>
+<p>另外存在一个问题，</p>
+<p>发现在二开代码中，该字段是在 <strong>2018-10-10</strong> 提交，项目升级前的代码版本是 <strong>2018-11-29</strong> 现在时间是 <strong>2019-04-23</strong> ，讲道理如果存在这个问题，应该之前每次升级就会出现了，并且一开始的通过 <code>checkout</code> 升级，也有时出现有时没有，很奇怪。<code>odoo</code> 迷之问题。</p>
+<h2 id="解决方案">解决方案：</h2>
+<ul>
+<li>
+<p>数据库方面：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="color:#66d9ef">ALTER</span> <span style="color:#66d9ef">TABLE</span> <span style="color:#e6db74">&#34;public&#34;</span>.<span style="color:#e6db74">&#34;account_invoice_line&#34;</span>
+   <span style="color:#66d9ef">DROP</span> <span style="color:#66d9ef">COLUMN</span> <span style="color:#e6db74">&#34;quantity&#34;</span>;
+<span style="color:#66d9ef">ALTER</span> <span style="color:#66d9ef">TABLE</span> <span style="color:#e6db74">&#34;public&#34;</span>.<span style="color:#e6db74">&#34;account_invoice_line&#34;</span> <span style="color:#66d9ef">RENAME</span> <span style="color:#66d9ef">COLUMN</span> <span style="color:#e6db74">&#34;quantity_moved1&#34;</span> <span style="color:#66d9ef">TO</span> <span style="color:#e6db74">&#34;quantity&#34;</span>;
+</code></pre></div></li>
+<li>
+<p>代码方面：</p>
+<p>出现问题的 <code>quantity</code> 字段修正之前的 <code>Integer</code> 类型为 <code>Float</code>类型</p>
+</li>
+</ul>
+
+
+
+
+      
+        <div class="blog-tags">
+          
+            <a
+              href="https://eoyohe.cn/tags/python/"
+              >python</a
+            >&nbsp;
+          
+            <a
+              href="https://eoyohe.cn/tags/odoo/"
+              >odoo</a
+            >&nbsp;
+          
+        </div>
+      
+
+      
+    </article>
+    
+    
+      
+
+    
+  </div>
+
+    <footer>
+  
+
+<div class="social-icons">
+  
+
+  
+</div>
+
+
+  
+  <div class="container">
+    <p class="credits copyright">
+      <a href="https://eoyohe.cn/about"></a>
+      &nbsp;&copy;
+      2017 - 
+      2021
+      
+        &nbsp;/&nbsp;
+        <a href="https://eoyohe.cn/">粤ICP备2022033411号</a>
+      
+      &nbsp;&ndash;&nbsp;
+      <em class="fas fa-moon" id="dark-mode-toggle"></em>
+    </p>
+  </div>
+</footer>
+
+  </body>
+</html>

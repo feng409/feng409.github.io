@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8" />
+<title>解决systemd下tmux和screen无法后台执行命令</title>
+<meta name="description" 
+      content=""
+>
+
+  
+
+
+
+
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link
+  rel="alternate"
+  type="application/rss+xml"
+  href="https://eoyohe.cn/index.xml"
+  title="chemf"
+/>
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="解决systemd下tmux和screen无法后台执行命令"/>
+<meta name="twitter:description" content="systemd 的 KillUserProcesses 会在退出杀死用户会话下进程问题"/>
+
+
+
+<link rel="stylesheet" href="https://eoyohe.cn/fontawesome/css/all.min.css" />
+
+
+
+
+<link
+  crossorigin="anonymous"
+  href="/css/styles.min.css"
+  integrity=""
+  rel="preload stylesheet"
+  as="style"
+/>
+
+
+
+
+<link
+  id="dark-mode-theme"
+  crossorigin="anonymous"
+  href="/css/dark.min.css"
+  integrity=""
+  rel="preload stylesheet"
+  as="style"
+/>
+
+
+<script>
+  var darkTheme = document.getElementById('dark-mode-theme')
+  var storedTheme = localStorage.getItem('dark-mode-storage')
+
+  if (storedTheme === 'dark') {
+    darkTheme.disabled = false
+  } else if (storedTheme === 'light') {
+    darkTheme.disabled = true
+  }
+</script>
+
+
+<script defer crossorigin="anonymous" src="/js/theme.js" integrity=""></script>
+
+
+<script defer crossorigin="anonymous" src="/js/instantpage.min.js" integrity=""></script><meta name="generator" content="Hugo 0.83.1" />
+  </head>
+  <body>
+    
+  
+
+
+
+
+  <header>
+    <nav class="navbar">
+  <div class="nav">
+    
+
+    <ul class="nav-links">
+      
+    </ul>
+  </div>
+</nav>
+
+    <div class="intro-header">
+      <div class="container">
+        <div class="posts-heading">
+          
+            <h1>
+              解决systemd下tmux和screen无法后台执行命令
+            </h1>
+          
+          
+        </div>
+      </div>
+    </div>
+  </header>
+  
+
+    
+  <div class="container" role="main">
+    <article class="article" class="blog-post">
+      
+  <h4 id="简介">简介</h4>
+<p>  目前大多数Linux发行版已经使用<code>systemd</code>启动代替以前的<code>init</code>启动，在<code>systemd</code>下，默认会话结束时，会杀死的会话中的所有进程。</p>
+<p>  因此当远程ssh时<code>exit</code>后<code>screen</code>和<code>tmux</code>的会话窗口也被关闭了。</p>
+<!-- raw HTML omitted -->
+<h4 id="原因">原因</h4>
+<p>  在systemd启动下，由<code>loginctl</code>控制着用户登录的一些配置选项。例如用户 <strong>log out</strong> 时默认杀死用户所有进程。</p>
+<h4 id="解决方法">解决方法：</h4>
+<ul>
+<li>
+<p>方法一：修改<code>loginctl</code>默认配置</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e">#/etc/systemd/logind.conf</span>
+KillUserProcesses<span style="color:#f92672">=</span>no
+</code></pre></div><p>然后重启服务即可</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sudo systemctl restart systemd-logind
+</code></pre></div></li>
+<li>
+<p>方法二：运行命令在当前用户session外，使用<code>systemd-run</code>命令：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">systemd-run --user --scope tmux
+</code></pre></div><p><code>systemd-run</code>用于后台执行命令，将进程从当前用户归属于<code>systemd</code>用户</p>
+</li>
+<li>
+<p>方法三：将命令写成一个服务，通过服务启动</p>
+<blockquote>
+<p>例如将scrapyd命令作为服务单元启动</p>
+</blockquote>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"> <span style="color:#75715e">#/usr/lib/systemd/system/scrapyd.service</span>
+ <span style="color:#f92672">[</span>Unit<span style="color:#f92672">]</span>
+ Description<span style="color:#f92672">=</span>run the Scrapyd server
+
+ <span style="color:#f92672">[</span>Service<span style="color:#f92672">]</span>
+ ExecStart<span style="color:#f92672">=</span>/home/pi/.virtualenvs/python3/bin/scrapyd
+ Type<span style="color:#f92672">=</span>simple
+ KillMode<span style="color:#f92672">=</span>process
+
+ <span style="color:#f92672">[</span>Install<span style="color:#f92672">]</span>
+ WantedBy<span style="color:#f92672">=</span>multi-user.target
+</code></pre></div><p>而后执行命令即可:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sudo systemctl daemon-reload
+
+sudo systemctl start scrapyd
+</code></pre></div></li>
+</ul>
+<h4 id="相关资料">相关资料</h4>
+<ul>
+<li>
+<p><a href="https://www.freedesktop.org/software/systemd/man/logind.conf.html#KillUserProcesses=">logind.conf配置选项说明</a></p>
+</li>
+<li>
+<p><a href="https://www.freedesktop.org/software/systemd/man/loginctl.html#">loginctl命令介绍</a></p>
+</li>
+<li>
+<p><a href="https://www.freedesktop.org/software/systemd/man/systemd-run.html#">systemd-run命令介绍</a></p>
+</li>
+<li>
+<p><a href="http://www.ruanyifeng.com/blog/2016/03/systemd-tutorial-commands.html">Systemd 入门教程：命令篇 (阮一峰)</a></p>
+</li>
+<li>
+<p><a href="http://www.ruanyifeng.com/blog/2016/03/systemd-tutorial-part-two.html">Systemd 入门教程：实战篇 (阮一峰)</a></p>
+</li>
+<li>
+<p><a href="https://askubuntu.com/questions/802189/how-to-run-tmux-screen-with-systemd-230">How to run tmux/screen with systemd &gt; 230?</a></p>
+</li>
+<li>
+<p><a href="https://segmentfault.com/q/1010000010749413?_ea=2403416">树莓派kali系统screen和nohup不能后台运行</a></p>
+</li>
+</ul>
+
+
+
+
+      
+        <div class="blog-tags">
+          
+            <a
+              href="https://eoyohe.cn/tags/linux/"
+              >Linux</a
+            >&nbsp;
+          
+        </div>
+      
+
+      
+    </article>
+    
+    
+      
+
+    
+  </div>
+
+    <footer>
+  
+
+<div class="social-icons">
+  
+
+  
+</div>
+
+
+  
+  <div class="container">
+    <p class="credits copyright">
+      <a href="https://eoyohe.cn/about"></a>
+      &nbsp;&copy;
+      2017 - 
+      2021
+      
+        &nbsp;/&nbsp;
+        <a href="https://eoyohe.cn/">粤ICP备2022033411号</a>
+      
+      &nbsp;&ndash;&nbsp;
+      <em class="fas fa-moon" id="dark-mode-toggle"></em>
+    </p>
+  </div>
+</footer>
+
+  </body>
+</html>

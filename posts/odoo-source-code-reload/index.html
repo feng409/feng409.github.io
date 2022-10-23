@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8" />
+<title>odoo源码阅读之自动重载的实现</title>
+<meta name="description" 
+      content=""
+>
+
+  
+
+
+
+
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link
+  rel="alternate"
+  type="application/rss+xml"
+  href="https://eoyohe.cn/index.xml"
+  title="chemf"
+/>
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="odoo源码阅读之自动重载的实现"/>
+<meta name="twitter:description" content="利用 watchdog 之类文件系统 api，实现代码热重载支持"/>
+
+
+
+<link rel="stylesheet" href="https://eoyohe.cn/fontawesome/css/all.min.css" />
+
+
+
+
+<link
+  crossorigin="anonymous"
+  href="/css/styles.min.css"
+  integrity=""
+  rel="preload stylesheet"
+  as="style"
+/>
+
+
+
+
+<link
+  id="dark-mode-theme"
+  crossorigin="anonymous"
+  href="/css/dark.min.css"
+  integrity=""
+  rel="preload stylesheet"
+  as="style"
+/>
+
+
+<script>
+  var darkTheme = document.getElementById('dark-mode-theme')
+  var storedTheme = localStorage.getItem('dark-mode-storage')
+
+  if (storedTheme === 'dark') {
+    darkTheme.disabled = false
+  } else if (storedTheme === 'light') {
+    darkTheme.disabled = true
+  }
+</script>
+
+
+<script defer crossorigin="anonymous" src="/js/theme.js" integrity=""></script>
+
+
+<script defer crossorigin="anonymous" src="/js/instantpage.min.js" integrity=""></script><meta name="generator" content="Hugo 0.83.1" />
+  </head>
+  <body>
+    
+  
+
+
+
+
+  <header>
+    <nav class="navbar">
+  <div class="nav">
+    
+
+    <ul class="nav-links">
+      
+    </ul>
+  </div>
+</nav>
+
+    <div class="intro-header">
+      <div class="container">
+        <div class="posts-heading">
+          
+            <h1>
+              odoo源码阅读之自动重载的实现
+            </h1>
+          
+          
+        </div>
+      </div>
+    </div>
+  </header>
+  
+
+    
+  <div class="container" role="main">
+    <article class="article" class="blog-post">
+      
+  <p>在阅读源码的时候发现原来odoo是有重载代码的实现的, 加上上一篇的模块远程部署更新功能,组合可以实现在终端上重载服务器了.</p>
+<h2 id="odoo服务器启动过程">odoo服务器启动过程</h2>
+<p>在odoo的server启动过程中, 首先是执行cli的main方法解析命令参数,默认则是启动服务器.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#75715e"># odoo/cli/command.py:33</span>
+<span style="color:#66d9ef">def</span> <span style="color:#a6e22e">main</span>():
+	<span style="color:#75715e"># ....此处省略若干代码</span>
+    <span style="color:#75715e"># 可以看到默认如果第一个参数不是-或者--开头的参数则是server命令启动服务器</span>
+    command <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;server&#34;</span>
+	<span style="color:#75715e"># ....此处省略若干代码</span>
+    <span style="color:#66d9ef">if</span> command <span style="color:#f92672">in</span> commands:
+        o <span style="color:#f92672">=</span> commands[command]()
+        o<span style="color:#f92672">.</span>run(args)
+    <span style="color:#66d9ef">else</span>:
+        sys<span style="color:#f92672">.</span>exit(<span style="color:#e6db74">&#39;Unknow command </span><span style="color:#e6db74">%r</span><span style="color:#e6db74">&#39;</span> <span style="color:#f92672">%</span> (command,))
+</code></pre></div><p>接下来看服务器的run方法, <code>odoo/cli/server.py</code> 的run方法直接是执行main函数,因此看main函数.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#75715e"># odoo/cli/server.py</span>
+<span style="color:#66d9ef">def</span> <span style="color:#a6e22e">main</span>(args):
+    <span style="color:#75715e"># 检查运行环境和解析配置</span>
+    check_root_user()
+    odoo<span style="color:#f92672">.</span>tools<span style="color:#f92672">.</span>config<span style="color:#f92672">.</span>parse_config(args)
+    check_postgres_user()
+    report_configuration()
+
+    config <span style="color:#f92672">=</span> odoo<span style="color:#f92672">.</span>tools<span style="color:#f92672">.</span>config
+
+    csv<span style="color:#f92672">.</span>field_size_limit(<span style="color:#ae81ff">500</span> <span style="color:#f92672">*</span> <span style="color:#ae81ff">1024</span> <span style="color:#f92672">*</span> <span style="color:#ae81ff">1024</span>)
+
+    <span style="color:#75715e"># 如果有指定数据库,数据库不存在则创建</span>
+    preload <span style="color:#f92672">=</span> []
+    <span style="color:#66d9ef">if</span> config[<span style="color:#e6db74">&#39;db_name&#39;</span>]:
+        preload <span style="color:#f92672">=</span> config[<span style="color:#e6db74">&#39;db_name&#39;</span>]<span style="color:#f92672">.</span>split(<span style="color:#e6db74">&#39;,&#39;</span>)
+        <span style="color:#66d9ef">for</span> db_name <span style="color:#f92672">in</span> preload:
+            <span style="color:#66d9ef">try</span>:
+                odoo<span style="color:#f92672">.</span>service<span style="color:#f92672">.</span>db<span style="color:#f92672">.</span>_create_empty_database(db_name)
+            <span style="color:#66d9ef">except</span> ProgrammingError <span style="color:#66d9ef">as</span> err:
+                <span style="color:#66d9ef">if</span> err<span style="color:#f92672">.</span>pgcode <span style="color:#f92672">==</span> errorcodes<span style="color:#f92672">.</span>INSUFFICIENT_PRIVILEGE:
+                    _logger<span style="color:#f92672">.</span>info(<span style="color:#e6db74">&#34;Could not determine if database </span><span style="color:#e6db74">%s</span><span style="color:#e6db74"> exists, &#34;</span>
+                                 <span style="color:#e6db74">&#34;skipping auto-creation: </span><span style="color:#e6db74">%s</span><span style="color:#e6db74">&#34;</span>, db_name, err)
+                <span style="color:#66d9ef">else</span>:
+                    <span style="color:#66d9ef">raise</span> err
+            <span style="color:#66d9ef">except</span> odoo<span style="color:#f92672">.</span>service<span style="color:#f92672">.</span>db<span style="color:#f92672">.</span>DatabaseExists:
+                <span style="color:#66d9ef">pass</span>
+	
+    <span style="color:#75715e"># 导入导出翻译</span>
+    <span style="color:#66d9ef">if</span> config[<span style="color:#e6db74">&#34;translate_out&#34;</span>]:
+        export_translation()
+        sys<span style="color:#f92672">.</span>exit(<span style="color:#ae81ff">0</span>)
+
+    <span style="color:#66d9ef">if</span> config[<span style="color:#e6db74">&#34;translate_in&#34;</span>]:
+        import_translation()
+        sys<span style="color:#f92672">.</span>exit(<span style="color:#ae81ff">0</span>)
+
+	<span style="color:#75715e"># 指定多进程</span>
+    <span style="color:#66d9ef">if</span> config[<span style="color:#e6db74">&#39;workers&#39;</span>]:
+        odoo<span style="color:#f92672">.</span>multi_process <span style="color:#f92672">=</span> True
+
+    stop <span style="color:#f92672">=</span> config[<span style="color:#e6db74">&#34;stop_after_init&#34;</span>]
+
+    setup_pid_file()
+    <span style="color:#75715e"># 敲重点,服务器开始运行</span>
+    rc <span style="color:#f92672">=</span> odoo<span style="color:#f92672">.</span>service<span style="color:#f92672">.</span>server<span style="color:#f92672">.</span>start(preload<span style="color:#f92672">=</span>preload, stop<span style="color:#f92672">=</span>stop)
+    sys<span style="color:#f92672">.</span>exit(rc)
+</code></pre></div><p>odoo服务器启动:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#75715e"># odoo/service/server.py</span>
+<span style="color:#66d9ef">def</span> <span style="color:#a6e22e">start</span>(preload<span style="color:#f92672">=</span>None, stop<span style="color:#f92672">=</span>False):
+    <span style="color:#e6db74">&#34;&#34;&#34; Start the odoo http server and cron processor.
+</span><span style="color:#e6db74">    &#34;&#34;&#34;</span>
+    <span style="color:#66d9ef">global</span> server
+
+    load_server_wide_modules()
+    odoo<span style="color:#f92672">.</span>service<span style="color:#f92672">.</span>wsgi_server<span style="color:#f92672">.</span>_patch_xmlrpc_marshaller()
+
+    <span style="color:#75715e"># 选择服务器类型, gevent服务器 or 多进程 or 多线程</span>
+    <span style="color:#66d9ef">if</span> odoo<span style="color:#f92672">.</span>evented:
+        server <span style="color:#f92672">=</span> GeventServer(odoo<span style="color:#f92672">.</span>service<span style="color:#f92672">.</span>wsgi_server<span style="color:#f92672">.</span>application)
+    <span style="color:#66d9ef">elif</span> config[<span style="color:#e6db74">&#39;workers&#39;</span>]:
+        <span style="color:#66d9ef">if</span> config[<span style="color:#e6db74">&#39;test_enable&#39;</span>] <span style="color:#f92672">or</span> config[<span style="color:#e6db74">&#39;test_file&#39;</span>]:
+            _logger<span style="color:#f92672">.</span>warning(<span style="color:#e6db74">&#34;Unit testing in workers mode could fail; use --workers 0.&#34;</span>)
+
+        server <span style="color:#f92672">=</span> PreforkServer(odoo<span style="color:#f92672">.</span>service<span style="color:#f92672">.</span>wsgi_server<span style="color:#f92672">.</span>application)
+
+        <span style="color:#75715e"># Workaround for Python issue24291, fixed in 3.6 (see Python issue26721)</span>
+        <span style="color:#66d9ef">if</span> sys<span style="color:#f92672">.</span>version_info[:<span style="color:#ae81ff">2</span>] <span style="color:#f92672">==</span> (<span style="color:#ae81ff">3</span>,<span style="color:#ae81ff">5</span>):
+            <span style="color:#75715e"># turn on buffering also for wfile, to avoid partial writes (Default buffer = 8k)</span>
+            werkzeug<span style="color:#f92672">.</span>serving<span style="color:#f92672">.</span>WSGIRequestHandler<span style="color:#f92672">.</span>wbufsize <span style="color:#f92672">=</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>
+    <span style="color:#66d9ef">else</span>:
+        server <span style="color:#f92672">=</span> ThreadedServer(odoo<span style="color:#f92672">.</span>service<span style="color:#f92672">.</span>wsgi_server<span style="color:#f92672">.</span>application)
+
+    <span style="color:#75715e"># 敲重点, 监视文件变化从而自动重载</span>
+    watcher <span style="color:#f92672">=</span> None
+    <span style="color:#66d9ef">if</span> <span style="color:#e6db74">&#39;reload&#39;</span> <span style="color:#f92672">in</span> config[<span style="color:#e6db74">&#39;dev_mode&#39;</span>]:
+        <span style="color:#66d9ef">if</span> watchdog:
+            watcher <span style="color:#f92672">=</span> FSWatcher()
+            watcher<span style="color:#f92672">.</span>start()
+        <span style="color:#66d9ef">else</span>:
+            _logger<span style="color:#f92672">.</span>warning(<span style="color:#e6db74">&#34;&#39;watchdog&#39; module not installed. &#34;</span>
+                            <span style="color:#e6db74">&#34;Code autoreload feature is disabled&#34;</span>)
+    <span style="color:#66d9ef">if</span> <span style="color:#e6db74">&#39;werkzeug&#39;</span> <span style="color:#f92672">in</span> config[<span style="color:#e6db74">&#39;dev_mode&#39;</span>]:
+        server<span style="color:#f92672">.</span>app <span style="color:#f92672">=</span> DebuggedApplication(server<span style="color:#f92672">.</span>app, evalex<span style="color:#f92672">=</span>True)
+
+    <span style="color:#75715e"># 敲重点, 启动服务器</span>
+    rc <span style="color:#f92672">=</span> server<span style="color:#f92672">.</span>run(preload, stop)
+
+    <span style="color:#75715e"># 如果标志 phoenix 为 true 则在服务器退出后重新载入</span>
+    <span style="color:#75715e"># like the legend of the phoenix, all ends with beginnings</span>
+    <span style="color:#66d9ef">if</span> getattr(odoo, <span style="color:#e6db74">&#39;phoenix&#39;</span>, False):
+        <span style="color:#66d9ef">if</span> watcher:
+            watcher<span style="color:#f92672">.</span>stop()
+        _reexec()
+
+    <span style="color:#66d9ef">return</span> rc <span style="color:#66d9ef">if</span> rc <span style="color:#66d9ef">else</span> <span style="color:#ae81ff">0</span>
+</code></pre></div><h2 id="watchdog实现文件内容更改则reload服务器">watchdog实现文件内容更改则reload服务器</h2>
+<p>在上面的服务器启动过程中, 可以看到, 如果我们配置了dev_mode包含了reload选项, 并且watchdog变量不为空的话, 则会启动watcher观察文件系统.那么, watchdog在哪导入的呢,在源码中有:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#75715e"># odoo/service/server.py</span>
+<span style="color:#66d9ef">try</span>:
+    <span style="color:#f92672">import</span> watchdog
+    <span style="color:#f92672">from</span> watchdog.observers <span style="color:#f92672">import</span> Observer
+    <span style="color:#f92672">from</span> watchdog.events <span style="color:#f92672">import</span> FileCreatedEvent, FileModifiedEvent, FileMovedEvent
+<span style="color:#66d9ef">except</span> <span style="color:#a6e22e">ImportError</span>:
+    watchdog <span style="color:#f92672">=</span> None
+</code></pre></div><p>可以看到, 尝试导入 <code>watchdog</code> , 导入失败则为None. 为此我专门去odoo的 <code>requirements.txt</code> 看了下, 并没有 <code>watchdog</code> 这个依赖, 当然, <code>pip install watchdog</code> 就好了, 但是官方这么做是为啥呢? 一脸黑线🌚</p>
+<p>接下来就是watchdog的事件处理了:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">FSWatcher</span>(object):
+    <span style="color:#66d9ef">def</span> __init__(self):
+        self<span style="color:#f92672">.</span>observer <span style="color:#f92672">=</span> Observer()
+        <span style="color:#66d9ef">for</span> path <span style="color:#f92672">in</span> odoo<span style="color:#f92672">.</span>modules<span style="color:#f92672">.</span>module<span style="color:#f92672">.</span>ad_paths:
+            _logger<span style="color:#f92672">.</span>info(<span style="color:#e6db74">&#39;Watching addons folder </span><span style="color:#e6db74">%s</span><span style="color:#e6db74">&#39;</span>, path)
+            <span style="color:#75715e"># 注册为自己为watchdog的事件处理</span>
+            self<span style="color:#f92672">.</span>observer<span style="color:#f92672">.</span>schedule(self, path, recursive<span style="color:#f92672">=</span>True)
+
+    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">dispatch</span>(self, event):
+        <span style="color:#66d9ef">if</span> isinstance(event, (FileCreatedEvent, FileModifiedEvent, FileMovedEvent)):
+            <span style="color:#66d9ef">if</span> <span style="color:#f92672">not</span> event<span style="color:#f92672">.</span>is_directory:
+                path <span style="color:#f92672">=</span> getattr(event, <span style="color:#e6db74">&#39;dest_path&#39;</span>, event<span style="color:#f92672">.</span>src_path)
+                <span style="color:#75715e"># 如果是py代码则尝试导入, try 没有语法错误 则 重启服务器</span>
+                <span style="color:#66d9ef">if</span> path<span style="color:#f92672">.</span>endswith(<span style="color:#e6db74">&#39;.py&#39;</span>) <span style="color:#f92672">and</span> <span style="color:#f92672">not</span> os<span style="color:#f92672">.</span>path<span style="color:#f92672">.</span>basename(path)<span style="color:#f92672">.</span>startswith(<span style="color:#e6db74">&#39;.~&#39;</span>):
+                    <span style="color:#66d9ef">try</span>:
+                        source <span style="color:#f92672">=</span> open(path, <span style="color:#e6db74">&#39;rb&#39;</span>)<span style="color:#f92672">.</span>read() <span style="color:#f92672">+</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#39;</span>
+                        compile(source, path, <span style="color:#e6db74">&#39;exec&#39;</span>)
+                    <span style="color:#66d9ef">except</span> FileNotFoundError:
+                        _logger<span style="color:#f92672">.</span>error(<span style="color:#e6db74">&#39;autoreload: python code change detected, FileNotFound for </span><span style="color:#e6db74">%s</span><span style="color:#e6db74">&#39;</span>, path)
+                    <span style="color:#66d9ef">except</span> <span style="color:#a6e22e">SyntaxError</span>:
+                        _logger<span style="color:#f92672">.</span>error(<span style="color:#e6db74">&#39;autoreload: python code change detected, SyntaxError in </span><span style="color:#e6db74">%s</span><span style="color:#e6db74">&#39;</span>, path)
+                    <span style="color:#66d9ef">else</span>:
+                        <span style="color:#66d9ef">if</span> <span style="color:#f92672">not</span> getattr(odoo, <span style="color:#e6db74">&#39;phoenix&#39;</span>, False):
+                            _logger<span style="color:#f92672">.</span>info(<span style="color:#e6db74">&#39;autoreload: python code updated, autoreload activated&#39;</span>)
+                            restart()
+
+    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">start</span>(self):
+        self<span style="color:#f92672">.</span>observer<span style="color:#f92672">.</span>start()
+        _logger<span style="color:#f92672">.</span>info(<span style="color:#e6db74">&#39;AutoReload watcher running&#39;</span>)
+
+    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">stop</span>(self):
+        self<span style="color:#f92672">.</span>observer<span style="color:#f92672">.</span>stop()
+        self<span style="color:#f92672">.</span>observer<span style="color:#f92672">.</span>join()
+</code></pre></div><p>在 <code>__init__</code> 有个有点意思的是 <code>self.observer.schedule(self, path, recursive=True)</code> 代码, 查看 <code>schedule</code> 函数签名可以看到对于第一个参数 <strong>event_handler</strong> 的类型是要求:</p>
+<blockquote>
+<p>`watchdog.events.FileSystemEventHandler` or a subclass</p>
+</blockquote>
+<p>而 <code>watchdog.events.FileSystemEventHandler</code> 的核心就是 <strong>dispatch</strong> 方法.</p>
+<p>看来源码这用的是动态语言的鸭子模型了. (这段有点啰嗦了)</p>
+<h2 id="信号处理重载服务器">信号处理重载服务器</h2>
+<p>在odoo服务器启动过程源码中, 可以看到odoo的服务器类型有三种: gevent, 多进程, 多线程.</p>
+<p>而默认的就是多线程版本。在多线程版本的start代码中，有一段信号注册代码：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">start</span>(self, stop<span style="color:#f92672">=</span>False):
+        _logger<span style="color:#f92672">.</span>debug(<span style="color:#e6db74">&#34;Setting signal handlers&#34;</span>)
+        <span style="color:#66d9ef">if</span> os<span style="color:#f92672">.</span>name <span style="color:#f92672">==</span> <span style="color:#e6db74">&#39;posix&#39;</span>:
+            signal<span style="color:#f92672">.</span>signal(signal<span style="color:#f92672">.</span>SIGINT, self<span style="color:#f92672">.</span>signal_handler)
+            signal<span style="color:#f92672">.</span>signal(signal<span style="color:#f92672">.</span>SIGTERM, self<span style="color:#f92672">.</span>signal_handler)
+            signal<span style="color:#f92672">.</span>signal(signal<span style="color:#f92672">.</span>SIGCHLD, self<span style="color:#f92672">.</span>signal_handler)
+            signal<span style="color:#f92672">.</span>signal(signal<span style="color:#f92672">.</span>SIGHUP, self<span style="color:#f92672">.</span>signal_handler)
+            signal<span style="color:#f92672">.</span>signal(signal<span style="color:#f92672">.</span>SIGQUIT, dumpstacks)
+            signal<span style="color:#f92672">.</span>signal(signal<span style="color:#f92672">.</span>SIGUSR1, log_ormcache_stats)
+        <span style="color:#66d9ef">elif</span> os<span style="color:#f92672">.</span>name <span style="color:#f92672">==</span> <span style="color:#e6db74">&#39;nt&#39;</span>:
+            <span style="color:#f92672">import</span> win32api
+            win32api<span style="color:#f92672">.</span>SetConsoleCtrlHandler(<span style="color:#66d9ef">lambda</span> sig: self<span style="color:#f92672">.</span>signal_handler(sig, None), <span style="color:#ae81ff">1</span>)
+
+        test_mode <span style="color:#f92672">=</span> config[<span style="color:#e6db74">&#39;test_enable&#39;</span>] <span style="color:#f92672">or</span> config[<span style="color:#e6db74">&#39;test_file&#39;</span>]
+        <span style="color:#66d9ef">if</span> test_mode <span style="color:#f92672">or</span> (config[<span style="color:#e6db74">&#39;http_enable&#39;</span>] <span style="color:#f92672">and</span> <span style="color:#f92672">not</span> stop):
+            <span style="color:#75715e"># some tests need the http deamon to be available...</span>
+            self<span style="color:#f92672">.</span>http_spawn()
+</code></pre></div><p>该代码表示， 如果系统内核是posix(Uni*系统)，则注册一系列信号处理。</p>
+<p>如果是nt内核（Windows系统），则将事件默认交给<strong>signal_handler</strong> 函数处理。</p>
+<p>接下来就看对应的信号处理函数：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">signal_handler</span>(self, sig, frame):
+        <span style="color:#66d9ef">if</span> sig <span style="color:#f92672">in</span> [signal<span style="color:#f92672">.</span>SIGINT, signal<span style="color:#f92672">.</span>SIGTERM]:
+            <span style="color:#75715e"># shutdown on kill -INT or -TERM</span>
+            self<span style="color:#f92672">.</span>quit_signals_received <span style="color:#f92672">+=</span> <span style="color:#ae81ff">1</span>
+            <span style="color:#66d9ef">if</span> self<span style="color:#f92672">.</span>quit_signals_received <span style="color:#f92672">&gt;</span> <span style="color:#ae81ff">1</span>:
+                <span style="color:#75715e"># logging.shutdown was already called at this point.</span>
+                sys<span style="color:#f92672">.</span>stderr<span style="color:#f92672">.</span>write(<span style="color:#e6db74">&#34;Forced shutdown.</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>)
+                os<span style="color:#f92672">.</span>_exit(<span style="color:#ae81ff">0</span>)
+            <span style="color:#75715e"># interrupt run() to start shutdown</span>
+            <span style="color:#66d9ef">raise</span> <span style="color:#a6e22e">KeyboardInterrupt</span>()
+        <span style="color:#66d9ef">elif</span> sig <span style="color:#f92672">==</span> signal<span style="color:#f92672">.</span>SIGHUP:
+            <span style="color:#75715e"># restart on kill -HUP</span>
+            odoo<span style="color:#f92672">.</span>phoenix <span style="color:#f92672">=</span> True
+            self<span style="color:#f92672">.</span>quit_signals_received <span style="color:#f92672">+=</span> <span style="color:#ae81ff">1</span>
+            <span style="color:#75715e"># interrupt run() to start shutdown</span>
+            <span style="color:#66d9ef">raise</span> <span style="color:#a6e22e">KeyboardInterrupt</span>()
+</code></pre></div><p>可以看到，如果是SIGHUP信号，则标记phoenix为True，同时抛出 <strong>KeyboardInterrupt</strong> 中断服务器，此后，回到我们的odoo服务器启动过程源码的最后一段：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">    <span style="color:#75715e"># like the legend of the phoenix, all ends with beginnings</span>
+    <span style="color:#66d9ef">if</span> getattr(odoo, <span style="color:#e6db74">&#39;phoenix&#39;</span>, False):
+        <span style="color:#66d9ef">if</span> watcher:
+            watcher<span style="color:#f92672">.</span>stop()
+        _reexec()
+</code></pre></div><p>由此可见，当odoo服务器进程收到SIGHUP信号时，将会重载odoo代码。</p>
+<p>对此，我们可以这么操作发送SIGHUP信号：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ kill -1 pid
+<span style="color:#75715e"># 或者</span>
+$ kill -s SIGHUP pid
+</code></pre></div><h2 id="注意">注意</h2>
+<p>reload只是重载了python代码，像xml这些视图配置的，还是需要去升级模块才能够更新的，但是可以用deploy命令配合。</p>
+
+
+
+
+      
+        <div class="blog-tags">
+          
+            <a
+              href="https://eoyohe.cn/tags/python/"
+              >python</a
+            >&nbsp;
+          
+            <a
+              href="https://eoyohe.cn/tags/odoo/"
+              >odoo</a
+            >&nbsp;
+          
+        </div>
+      
+
+      
+    </article>
+    
+    
+      
+
+    
+  </div>
+
+    <footer>
+  
+
+<div class="social-icons">
+  
+
+  
+</div>
+
+
+  
+  <div class="container">
+    <p class="credits copyright">
+      <a href="https://eoyohe.cn/about"></a>
+      &nbsp;&copy;
+      2017 - 
+      2021
+      
+        &nbsp;/&nbsp;
+        <a href="https://eoyohe.cn/">粤ICP备2022033411号</a>
+      
+      &nbsp;&ndash;&nbsp;
+      <em class="fas fa-moon" id="dark-mode-toggle"></em>
+    </p>
+  </div>
+</footer>
+
+  </body>
+</html>

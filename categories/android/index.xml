@@ -1,0 +1,17 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+	<channel>
+		<title>Android on chemf</title>
+		<link>https://eoyohe.cn/categories/android/</link>
+		<description>Recent content in Android </description>
+		<generator>Hugo -- gohugo.io</generator>
+		
+  		<language>en-us</language>
+		
+		<managingEditor>Page(/categories/android)</managingEditor>
+    	
+  		<lastBuildDate>Fri, 26 May 2017 10:11:43 +0000</lastBuildDate>
+		
+		<atom:link href="/categories/android/" rel="self" type="application/rss+xml" />
+		
+	</channel>
+</rss>

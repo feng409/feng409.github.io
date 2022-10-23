@@ -1,0 +1,17 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+	<channel>
+		<title>Linux on chemf</title>
+		<link>https://eoyohe.cn/tags/linux/</link>
+		<description>Recent content in Linux </description>
+		<generator>Hugo -- gohugo.io</generator>
+		
+  		<language>en-us</language>
+		
+		<managingEditor>Page(/tags/linux)</managingEditor>
+    	
+  		<lastBuildDate>Sat, 19 May 2018 14:50:09 +0000</lastBuildDate>
+		
+		<atom:link href="/tags/linux/" rel="self" type="application/rss+xml" />
+		
+	</channel>
+</rss>

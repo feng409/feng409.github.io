@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8" />
+<title>进程、线程和协程的概念</title>
+<meta name="description" 
+      content=""
+>
+
+  
+
+
+
+
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link
+  rel="alternate"
+  type="application/rss+xml"
+  href="https://eoyohe.cn/index.xml"
+  title="chemf"
+/>
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="进程、线程和协程的概念"/>
+<meta name="twitter:description" content="简单记录下不同概念"/>
+
+
+
+<link rel="stylesheet" href="https://eoyohe.cn/fontawesome/css/all.min.css" />
+
+
+
+
+<link
+  crossorigin="anonymous"
+  href="/css/styles.min.css"
+  integrity=""
+  rel="preload stylesheet"
+  as="style"
+/>
+
+
+
+
+<link
+  id="dark-mode-theme"
+  crossorigin="anonymous"
+  href="/css/dark.min.css"
+  integrity=""
+  rel="preload stylesheet"
+  as="style"
+/>
+
+
+<script>
+  var darkTheme = document.getElementById('dark-mode-theme')
+  var storedTheme = localStorage.getItem('dark-mode-storage')
+
+  if (storedTheme === 'dark') {
+    darkTheme.disabled = false
+  } else if (storedTheme === 'light') {
+    darkTheme.disabled = true
+  }
+</script>
+
+
+<script defer crossorigin="anonymous" src="/js/theme.js" integrity=""></script>
+
+
+<script defer crossorigin="anonymous" src="/js/instantpage.min.js" integrity=""></script><meta name="generator" content="Hugo 0.83.1" />
+  </head>
+  <body>
+    
+  
+
+
+
+
+  <header>
+    <nav class="navbar">
+  <div class="nav">
+    
+
+    <ul class="nav-links">
+      
+    </ul>
+  </div>
+</nav>
+
+    <div class="intro-header">
+      <div class="container">
+        <div class="posts-heading">
+          
+            <h1>
+              进程、线程和协程的概念
+            </h1>
+          
+          
+        </div>
+      </div>
+    </div>
+  </header>
+  
+
+    
+  <div class="container" role="main">
+    <article class="article" class="blog-post">
+      
+  <h1 id="线程-协程-进程">线程 协程 进程</h1>
+<h2 id="进程">进程</h2>
+<blockquote>
+<p>进程是系统资源分配的最小单位, 系统由一个个进程(程序)组成
+一般情况下，包括文本区域（text region）、数据区域（data region）和堆栈（stack region）。</p>
+<ul>
+<li>文本区域存储处理器执行的代码</li>
+<li>数据区域存储变量和进程执行期间使用的动态分配的内存；</li>
+<li>堆栈区域存储着活动过程调用的指令和本地变量。</li>
+</ul>
+</blockquote>
+<p>因此进程的创建和销毁都是相对于系统资源,所以是一种比较昂贵的操作。
+进程有三个状态:</p>
+<ol>
+<li>等待态：等待某个事件的完成；</li>
+<li>就绪态：等待系统分配处理器以便运行；</li>
+<li>运行态：占有处理器正在运行。</li>
+</ol>
+<p>进程是抢占式的争夺CPU运行自身,而CPU单核的情况下同一时间只能执行一个进程的代码,但是多进程的实现则是通过CPU飞快的切换不同进程,因此使得看上去就像是多个进程在同时进行.</p>
+<blockquote>
+<p>通信问题:    由于进程间是隔离的,各自拥有自己的内存内存资源, <em>因此相对于线程比较安全</em>, 所以不同进程之间的数据只能通过 <em>IPC(Inter-Process Communication)</em> 进行通信共享.</p>
+</blockquote>
+<h2 id="线程">线程</h2>
+<blockquote>
+<ul>
+<li>线程属于进程</li>
+<li>线程共享进程的内存地址空间</li>
+<li>线程几乎不占有系统资源
+通信问题:   进程相当于一个容器,而线程而是运行在容器里面的,因此对于容器内的东西,线程是共同享有的,因此线程间的通信可以直接通过全局变量进行通信,但是由此带来的例如多个线程读写同一个地址变量的时候则将带来不可预期的后果,因此这时候引入了各种锁的作用,例如互斥锁等。</li>
+</ul>
+</blockquote>
+<p>同时多线程是不安全的,当一个线程崩溃了,会导致整个进程也崩溃了,即其他线程也挂了,
+但多进程而不会,一个进程挂了,另一个进程依然照样运行。</p>
+<ul>
+<li><em><strong>进程是系统分配资源的最小单位</strong></em></li>
+<li><em><strong>线程是CPU调度的最小单位</strong></em></li>
+<li><em>由于默认进程内只有一个线程,所以多核CPU处理多进程就像是一个进程一个核心</em></li>
+</ul>
+<h3 id="线程和进程的上下文切换">线程和进程的上下文切换</h3>
+<p>进程切换分3步:</p>
+<ol>
+<li>切换页目录以使用新的地址空间</li>
+<li>切换内核栈</li>
+<li>切换硬件上下文</li>
+</ol>
+<p>而线程切换只需要第2、3步,因此进程的切换代价比较大</p>
+<h2 id="协程">协程</h2>
+<blockquote>
+<ul>
+<li>协程是属于线程的。协程程序是在线程里面跑的，因此协程又称微线程和纤程等</li>
+<li>协没有线程的上下文切换消耗。协程的调度切换是用户(程序员)手动切换的,因此更加灵活,因此又叫用户空间线程.</li>
+<li>原子操作性。由于协程是用户调度的，所以不会出现执行一半的代码片段被强制中断了，因此无需原子操作锁。</li>
+</ul>
+</blockquote>
+<h3 id="协程的实现迭代器和生成器">协程的实现：迭代器和生成器</h3>
+<ul>
+<li>迭代器： 实现了迭代接口的类,接口函数例如:current,key,next,rewind,valid。迭代器最基本的规定了对象可以通过next返回下一个值，而不是像数组，列表一样一次性返回。语言实现：在Java的foreach遍历迭代器对(数组)，Python的for遍历迭代器对象(tuple，list，dist)。</li>
+<li>生成器： 使用 <em>yield</em> 关键字的函数,可以多次返回值，生成器实际上也算是实现了迭代器接口(协议)。即生成器也可通过next返回下一个值。</li>
+</ul>
+<blockquote>
+<p>协程举例：在Python中，使用了yield的函数为生成器函数，即可以多次返回值。则生成器可以暂停一下，转而执行其他代码，再回来继续执行函数往下的代码。</p>
+</blockquote>
+
+
+
+
+      
+        <div class="blog-tags">
+          
+            <a
+              href="https://eoyohe.cn/tags/linux/"
+              >Linux</a
+            >&nbsp;
+          
+        </div>
+      
+
+      
+    </article>
+    
+    
+      
+
+    
+  </div>
+
+    <footer>
+  
+
+<div class="social-icons">
+  
+
+  
+</div>
+
+
+  
+  <div class="container">
+    <p class="credits copyright">
+      <a href="https://eoyohe.cn/about"></a>
+      &nbsp;&copy;
+      2017 - 
+      2021
+      
+        &nbsp;/&nbsp;
+        <a href="https://eoyohe.cn/">粤ICP备2022033411号</a>
+      
+      &nbsp;&ndash;&nbsp;
+      <em class="fas fa-moon" id="dark-mode-toggle"></em>
+    </p>
+  </div>
+</footer>
+
+  </body>
+</html>

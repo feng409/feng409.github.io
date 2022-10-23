@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8" />
+<title>odoo远程部署命令</title>
+<meta name="description" 
+      content=""
+>
+
+  
+
+
+
+
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link
+  rel="alternate"
+  type="application/rss+xml"
+  href="https://eoyohe.cn/index.xml"
+  title="chemf"
+/>
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="odoo远程部署命令"/>
+<meta name="twitter:description" content="odoo 远程热加载支持"/>
+
+
+
+<link rel="stylesheet" href="https://eoyohe.cn/fontawesome/css/all.min.css" />
+
+
+
+
+<link
+  crossorigin="anonymous"
+  href="/css/styles.min.css"
+  integrity=""
+  rel="preload stylesheet"
+  as="style"
+/>
+
+
+
+
+<link
+  id="dark-mode-theme"
+  crossorigin="anonymous"
+  href="/css/dark.min.css"
+  integrity=""
+  rel="preload stylesheet"
+  as="style"
+/>
+
+
+<script>
+  var darkTheme = document.getElementById('dark-mode-theme')
+  var storedTheme = localStorage.getItem('dark-mode-storage')
+
+  if (storedTheme === 'dark') {
+    darkTheme.disabled = false
+  } else if (storedTheme === 'light') {
+    darkTheme.disabled = true
+  }
+</script>
+
+
+<script defer crossorigin="anonymous" src="/js/theme.js" integrity=""></script>
+
+
+<script defer crossorigin="anonymous" src="/js/instantpage.min.js" integrity=""></script><meta name="generator" content="Hugo 0.83.1" />
+  </head>
+  <body>
+    
+  
+
+
+
+
+  <header>
+    <nav class="navbar">
+  <div class="nav">
+    
+
+    <ul class="nav-links">
+      
+    </ul>
+  </div>
+</nav>
+
+    <div class="intro-header">
+      <div class="container">
+        <div class="posts-heading">
+          
+            <h1>
+              odoo远程部署命令
+            </h1>
+          
+          
+        </div>
+      </div>
+    </div>
+  </header>
+  
+
+    
+  <div class="container" role="main">
+    <article class="article" class="blog-post">
+      
+  <p>阅读源码的cli模块发现一个远程部署模块的命令，在官方文档并没有说，发现隐藏功能！</p>
+<h2 id="解决的问题">解决的问题</h2>
+<p>在odoo里面写界面是很烦人的，每次写完需要重启服务器并且到app界面点击升级模块才能看到效果，用部署命令即可一条命令刷新界面效果。也就是热重载。当然，这个也可以用于安装新模块。</p>
+<h2 id="前提条件">前提条件</h2>
+<p>在 <code>odoo/cli/deploy.py</code> 源码中可以看到，部署命令的操作是将模块文件上传在运行中的odoo执行安装操作。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">authenticate</span>(self, server, login, password, db<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;&#39;</span>):
+<span style="color:#66d9ef">print</span>(<span style="color:#e6db74">&#34;Authenticating on server &#39;</span><span style="color:#e6db74">%s</span><span style="color:#e6db74">&#39; ...&#34;</span> <span style="color:#f92672">%</span> server)
+
+<span style="color:#75715e"># Fixate session with a given db if any</span>
+self<span style="color:#f92672">.</span>session<span style="color:#f92672">.</span>get(server <span style="color:#f92672">+</span> <span style="color:#e6db74">&#39;/web/login&#39;</span>, params<span style="color:#f92672">=</span>dict(db<span style="color:#f92672">=</span>db))
+
+args <span style="color:#f92672">=</span> dict(login<span style="color:#f92672">=</span>login, password<span style="color:#f92672">=</span>password, db<span style="color:#f92672">=</span>db)
+res <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>session<span style="color:#f92672">.</span>post(server <span style="color:#f92672">+</span> <span style="color:#e6db74">&#39;/base_import_module/login&#39;</span>, args)
+<span style="color:#66d9ef">if</span> res<span style="color:#f92672">.</span>status_code <span style="color:#f92672">==</span> <span style="color:#ae81ff">404</span>:
+<span style="color:#66d9ef">raise</span> <span style="color:#a6e22e">Exception</span>(<span style="color:#e6db74">&#34;The server &#39;</span><span style="color:#e6db74">%s</span><span style="color:#e6db74">&#39; does not have the &#39;base_import_module&#39; installed.&#34;</span> <span style="color:#f92672">%</span> server)
+<span style="color:#66d9ef">elif</span> res<span style="color:#f92672">.</span>status_code <span style="color:#f92672">!=</span> <span style="color:#ae81ff">200</span>:
+<span style="color:#66d9ef">raise</span> <span style="color:#a6e22e">Exception</span>(res<span style="color:#f92672">.</span>text)
+
+<span style="color:#66d9ef">return</span> res<span style="color:#f92672">.</span>headers<span style="color:#f92672">.</span>get(<span style="color:#e6db74">&#39;x-csrf-token&#39;</span>)
+</code></pre></div><p>查找 <code>/base_import_module/login</code> 路由，发现在 addons/base_import_module 模块里，因此，我们需要先在web管理界面安装该模块 <code>base_import_module</code> 。</p>
+<h2 id="deploy命令介绍">deploy命令介绍</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ odoo deploy -h
+usage: odoo deploy <span style="color:#f92672">[</span>-h<span style="color:#f92672">]</span> <span style="color:#f92672">[</span>--db DB<span style="color:#f92672">]</span> <span style="color:#f92672">[</span>--login LOGIN<span style="color:#f92672">]</span> <span style="color:#f92672">[</span>--password PASSWORD<span style="color:#f92672">]</span>
+<span style="color:#f92672">[</span>--verify-ssl<span style="color:#f92672">]</span> <span style="color:#f92672">[</span>--force<span style="color:#f92672">]</span>
+path <span style="color:#f92672">[</span>url<span style="color:#f92672">]</span>
+
+Deploy a module on an Odoo instance
+
+positional arguments:
+path                 Path of the module to deploy
+url                  Url of the server <span style="color:#f92672">(</span>default<span style="color:#f92672">=</span>http://localhost:8069<span style="color:#f92672">)</span>
+
+optional arguments:
+-h, --help           show this help message and exit
+--db DB              Database to use <span style="color:#66d9ef">if</span> server does not use db-filter.
+--login LOGIN        Login <span style="color:#f92672">(</span>default<span style="color:#f92672">=</span>admin<span style="color:#f92672">)</span>
+--password PASSWORD  Password <span style="color:#f92672">(</span>default<span style="color:#f92672">=</span>admin<span style="color:#f92672">)</span>
+--verify-ssl         Verify SSL certificate
+--force              Force init even <span style="color:#66d9ef">if</span> module is already installed. <span style="color:#f92672">(</span>will
+update <span style="color:#e6db74">`</span>noupdate<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;1&#34;</span><span style="color:#e6db74">`</span> records<span style="color:#f92672">)</span>
+</code></pre></div><p>odoo的命令解析都是用argparse模块，因此我们在传参的时候按照默认习惯就好。</p>
+<p>从帮助上看，部署命令的使用为 odoo deploy 模块路径 网站url &ndash;login 用户名 &ndash;password 密码</p>
+<h2 id="使用示例">使用示例</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ odoo deploy addons/my_module http://localhost:8888 --login account@email.com --password<span style="color:#f92672">=</span>this_is_password
+Authenticating on server <span style="color:#e6db74">&#39;http://localhost:8888&#39;</span> ...
+Zipping module directory...
+Uploading module file...
+Successfully imported module <span style="color:#e6db74">&#39;my_module&#39;</span>
+</code></pre></div><h2 id="注意点">注意点</h2>
+<p>阅读 <code>base_import_module</code> 源码可以发现该命令只是安装或者升级模块的xml文件，并不会更新已经在运行的python代码。</p>
+
+
+
+
+      
+
+      
+    </article>
+    
+    
+      
+
+    
+  </div>
+
+    <footer>
+  
+
+<div class="social-icons">
+  
+
+  
+</div>
+
+
+  
+  <div class="container">
+    <p class="credits copyright">
+      <a href="https://eoyohe.cn/about"></a>
+      &nbsp;&copy;
+      2017 - 
+      2021
+      
+        &nbsp;/&nbsp;
+        <a href="https://eoyohe.cn/">粤ICP备2022033411号</a>
+      
+      &nbsp;&ndash;&nbsp;
+      <em class="fas fa-moon" id="dark-mode-toggle"></em>
+    </p>
+  </div>
+</footer>
+
+  </body>
+</html>

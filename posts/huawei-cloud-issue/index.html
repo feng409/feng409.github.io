@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8" />
+<title>华为云服务器 443 端口 ssl 无法使用问题排查</title>
+<meta name="description" 
+      content=""
+>
+
+  
+
+
+
+
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link
+  rel="alternate"
+  type="application/rss+xml"
+  href="https://eoyohe.cn/index.xml"
+  title="chemf"
+/>
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="华为云服务器 443 端口 ssl 无法使用问题排查"/>
+<meta name="twitter:description" content="华为云对未备案貌似机器的流量貌似有检测"/>
+
+
+
+<link rel="stylesheet" href="https://eoyohe.cn/fontawesome/css/all.min.css" />
+
+
+
+
+<link
+  crossorigin="anonymous"
+  href="/css/styles.min.css"
+  integrity=""
+  rel="preload stylesheet"
+  as="style"
+/>
+
+
+
+
+<link
+  id="dark-mode-theme"
+  crossorigin="anonymous"
+  href="/css/dark.min.css"
+  integrity=""
+  rel="preload stylesheet"
+  as="style"
+/>
+
+
+<script>
+  var darkTheme = document.getElementById('dark-mode-theme')
+  var storedTheme = localStorage.getItem('dark-mode-storage')
+
+  if (storedTheme === 'dark') {
+    darkTheme.disabled = false
+  } else if (storedTheme === 'light') {
+    darkTheme.disabled = true
+  }
+</script>
+
+
+<script defer crossorigin="anonymous" src="/js/theme.js" integrity=""></script>
+
+
+<script defer crossorigin="anonymous" src="/js/instantpage.min.js" integrity=""></script><meta name="generator" content="Hugo 0.83.1" />
+  </head>
+  <body>
+    
+  
+
+
+
+
+  <header>
+    <nav class="navbar">
+  <div class="nav">
+    
+
+    <ul class="nav-links">
+      
+    </ul>
+  </div>
+</nav>
+
+    <div class="intro-header">
+      <div class="container">
+        <div class="posts-heading">
+          
+            <h1>
+              华为云服务器 443 端口 ssl 无法使用问题排查
+            </h1>
+          
+          
+        </div>
+      </div>
+    </div>
+  </header>
+  
+
+    
+  <div class="container" role="main">
+    <article class="article" class="blog-post">
+      
+  <h2 id="需求">需求</h2>
+<p>想部署个服务，解析个三级域名，但是不想去备案，随便在 cloud flare 上解析域名到服务器上，再用 certbot 申请个免费证书，走 ssl 避开备案检测。</p>
+<h2 id="日志报错">日志报错</h2>
+<pre><code>$ curl -v https://notify.eoyohe.xyz:443/ping
+*   Trying xxx.xxx.xxx.xxx...
+* TCP_NODELAY set
+* Connected to notify.eoyohe.xyz (xxx.xxx.xxx.xxx) port 443 (#0)
+* ALPN, offering h2
+* ALPN, offering http/1.1
+* successfully set certificate verify locations:
+*   CAfile: /etc/ssl/cert.pem
+  CApath: none
+* TLSv1.2 (OUT), TLS handshake, Client hello (1):
+* error:1400410B:SSL routines:CONNECT_CR_SRVR_HELLO:wrong version number
+* Closing connection 0
+curl: (35) error:1400410B:SSL routines:CONNECT_CR_SRVR_HELLO:wrong version number
+</code></pre><h2 id="排查方式">排查方式</h2>
+<h3 id="查资料">查资料</h3>
+<p><a href="https://stackoverflow.com/questions/53245818/nginx-upstream-to-https-host-ssl3-get-recordwrong-version-number">Nginx upstream to https host - ssl3_get_record:wrong version number</a></p>
+<blockquote>
+<p>Trying to access it by HTTPS will usually result in a HTTP error response by the server which, when interpreted as the expected TLS handshake response, will result in strange error messages like <code>ssl3_get_record:wrong version number</code>.</p>
+</blockquote>
+<p>也就是说在 http 的接口上进行 https 访问，会得到类似的报错</p>
+<h3 id="排查机器上-443-端口占用">排查机器上 443 端口占用</h3>
+<ol>
+<li>nginx 修改为 listen 4443;</li>
+<li>lsof -i :443 可以看到已经没有监听中的端口</li>
+</ol>
+<h3 id="排查配置问题">排查配置问题</h3>
+<p>同上，修改为 4443 端口后，发现可以访问，<em>https://host:4443/ping</em>  是可以访问的</p>
+<h3 id="排查-nginx-版本问题">排查 nginx 版本问题</h3>
+<pre><code># 下载最新版 nginx 源码
+$ wget http://nginx.org/download/nginx-1.18.0.tar.gz
+# 解压并编译
+$ tar zxf nginx-1.18.0.tar.gz
+$ cd nginx-1.18.0
+# ssl 模块是必须的，其他模块暂时不知道，可能 gzip 也要
+$ ./configure --prefix=/usr/local/nginx --with-http_ssl_module
+$ make &amp;&amp; make install
+# 复制之前的配置文件并启动编译的nginx
+$ nginx -s start
+$ nginx -s reload
+$ nginx -s stop
+</code></pre><p>结果一样有该问题</p>
+<h3 id="怀疑是未备案被云供应商拦截了">怀疑是未备案被云供应商拦截了</h3>
+<ol>
+<li>搜索 V 站发现很多人被套路云拦截了，但我是华为云</li>
+<li>提交工单询问华为云，不承认，不认同是被拦截</li>
+</ol>
+<h2 id="解决">解决</h2>
+<p>用另一个在 良心云 备案过的域名解析到该服务器上，测试 443 端口可以走。</p>
+<h2 id="疑点">疑点</h2>
+<ul>
+<li>服务器上 curl 是通的，外网 curl 不通，说明外网情况下可能确实被华为云拦截了</li>
+</ul>
+
+
+
+
+      
+
+      
+    </article>
+    
+    
+      
+
+    
+  </div>
+
+    <footer>
+  
+
+<div class="social-icons">
+  
+
+  
+</div>
+
+
+  
+  <div class="container">
+    <p class="credits copyright">
+      <a href="https://eoyohe.cn/about"></a>
+      &nbsp;&copy;
+      2017 - 
+      2021
+      
+        &nbsp;/&nbsp;
+        <a href="https://eoyohe.cn/">粤ICP备2022033411号</a>
+      
+      &nbsp;&ndash;&nbsp;
+      <em class="fas fa-moon" id="dark-mode-toggle"></em>
+    </p>
+  </div>
+</footer>
+
+  </body>
+</html>

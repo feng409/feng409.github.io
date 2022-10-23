@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8" />
+<title>laravel默认登录注册源码解析追踪</title>
+<meta name="description" 
+      content=""
+>
+
+  
+
+
+
+
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link
+  rel="alternate"
+  type="application/rss+xml"
+  href="https://eoyohe.cn/index.xml"
+  title="chemf"
+/>
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="laravel默认登录注册源码解析追踪"/>
+<meta name="twitter:description" content="太好的封装其实增加了理解负担，有时候不得不通过阅读框架源码确定程序行为"/>
+
+
+
+<link rel="stylesheet" href="https://eoyohe.cn/fontawesome/css/all.min.css" />
+
+
+
+
+<link
+  crossorigin="anonymous"
+  href="/css/styles.min.css"
+  integrity=""
+  rel="preload stylesheet"
+  as="style"
+/>
+
+
+
+
+<link
+  id="dark-mode-theme"
+  crossorigin="anonymous"
+  href="/css/dark.min.css"
+  integrity=""
+  rel="preload stylesheet"
+  as="style"
+/>
+
+
+<script>
+  var darkTheme = document.getElementById('dark-mode-theme')
+  var storedTheme = localStorage.getItem('dark-mode-storage')
+
+  if (storedTheme === 'dark') {
+    darkTheme.disabled = false
+  } else if (storedTheme === 'light') {
+    darkTheme.disabled = true
+  }
+</script>
+
+
+<script defer crossorigin="anonymous" src="/js/theme.js" integrity=""></script>
+
+
+<script defer crossorigin="anonymous" src="/js/instantpage.min.js" integrity=""></script><meta name="generator" content="Hugo 0.83.1" />
+  </head>
+  <body>
+    
+  
+
+
+
+
+  <header>
+    <nav class="navbar">
+  <div class="nav">
+    
+
+    <ul class="nav-links">
+      
+    </ul>
+  </div>
+</nav>
+
+    <div class="intro-header">
+      <div class="container">
+        <div class="posts-heading">
+          
+            <h1>
+              laravel默认登录注册源码解析追踪
+            </h1>
+          
+          
+        </div>
+      </div>
+    </div>
+  </header>
+  
+
+    
+  <div class="container" role="main">
+    <article class="article" class="blog-post">
+      
+  <p>被laravel的登录注册烦恼了好一段时间，总算理顺了思路。</p>
+<!-- raw HTML omitted -->
+<p>laravel内部封装实现好了一个简单版本的登录注册模块，通过以下命令即可快速开启:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">php artisan make:auth
+</code></pre></div><p>但是毕竟是默认实现好的，总想知道内部代码实现。于是开始了源码之旅。。。</p>
+<h4 id="auth">Auth</h4>
+<p>先说说laravel的认证过程，门面(Facade) <strong>Auth</strong> 提供了一些便捷的方法如获得当前认证用户信息等，实际上负责认证用户的是守卫 <strong>guard</strong> ，guard负责该用户是否通过验证，是否已登录，是否 <code>记住</code>等。<strong>门面Auth实际上是在   <code>AuthServiceProvider</code> 中注册的 <code>AuthManager</code> 的实例</strong></p>
+<h4 id="guard">guard</h4>
+<p>关于<strong>guard</strong>的配置在config/Auth.php中，如配置默认使用哪个 <strong>guard</strong> ， <strong>guard</strong> 使用的驱动，框架默认实现的有 <code>session</code> 和 <code>token</code>  两个驱动类。驱动类则负责从服务提供类中获得认证需要的数据。</p>
+<pre><code>    'guards' =&gt; [
+        'web' =&gt; [
+            'driver' =&gt; 'session',
+            'provider' =&gt; 'users',
+        ],
+
+        'api' =&gt; [
+            'driver' =&gt; 'token',
+            'provider' =&gt; 'users',
+        ],
+    ],
+
+</code></pre><p>自定义guard类，guard需要检查用户是否登录，认证账号是否正确等，因此laravel定义了一个契约接口需要实现，自定义guard需要<code>StatefulGuard</code>或者<code>Guard</code>接口。然后在 <strong>AuthServiceProvider</strong> 中注册guard。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-php" data-lang="php"><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">AuthServiceProvider</span> <span style="color:#66d9ef">extends</span> <span style="color:#a6e22e">ServiceProvider</span>
+{
+    <span style="color:#e6db74">/**
+</span><span style="color:#e6db74">     * Register any application authentication / authorization services.
+</span><span style="color:#e6db74">     *
+</span><span style="color:#e6db74">     * @return void
+</span><span style="color:#e6db74">     */</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">function</span> <span style="color:#a6e22e">boot</span>()
+    {
+        $this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">registerPolicies</span>();
+
+        <span style="color:#75715e">// &#39;jwt&#39;为注册guard的名字，待会在config/auth.php中配置。
+</span><span style="color:#75715e"></span>        <span style="color:#75715e">// 匿名函数返回自定义的guard类的实例
+</span><span style="color:#75715e"></span>        <span style="color:#a6e22e">Auth</span><span style="color:#f92672">::</span><span style="color:#a6e22e">extend</span>(<span style="color:#e6db74">&#39;jwt&#39;</span>, <span style="color:#66d9ef">function</span> ($app, $name, <span style="color:#66d9ef">array</span> $config) {
+            <span style="color:#75715e">// Return an instance of Illuminate\Contracts\Auth\Guard...
+</span><span style="color:#75715e"></span>
+            <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">new</span> <span style="color:#a6e22e">JwtGuard</span>(<span style="color:#a6e22e">Auth</span><span style="color:#f92672">::</span><span style="color:#a6e22e">createUserProvider</span>($config[<span style="color:#e6db74">&#39;provider&#39;</span>]));
+        });
+    }
+}
+</code></pre></div><p>注册后需要在config/auth.php中配置</p>
+<pre><code>'guards' =&gt; [
+    'api' =&gt; [
+        'driver' =&gt; 'jwt',
+        'provider' =&gt; 'users',
+    ],
+],
+</code></pre><h4 id="providers">providers</h4>
+<p><strong>guard</strong> 负责认证用户，具体为针对请求中的认证信息，对对应数据库中的信息查询是否存在，而查询信息这种操作便是交给服务提供者来实现了。在默认配置中，设定了 &lsquo;web&rsquo; 这个 <strong>guard</strong> 的提供者为 <code>users</code> 。 下面是 <code>users</code> 的配置。</p>
+<pre><code>    'providers' =&gt; [
+        'users' =&gt; [
+            'driver' =&gt; 'eloquent',
+            'model' =&gt; App\User::class,
+        ],
+</code></pre><p><code>users</code>使用 <code>eloquent</code>驱动，默认的驱动支持<code>eloquent</code>和<code>database</code>。这里使用 <code>eloquent</code>驱动，<code>eloquent</code>对应使用的model类是<code>App\User:class</code>，即认证用户在user表中。</p>
+<p>自定义provider，自定义类需要实现 <strong>UserProvider</strong> 接口，接口定义了如下方法需要实现:</p>
+<ul>
+<li>retrieveById : 获取一个代表用户的值</li>
+<li>retrieveByToken : 借助用户唯一的 <strong>$identifier</strong> 和「记住我」<strong>$token</strong> 来获取用户</li>
+<li>updateRememberToken : 使用新的 <strong>$token</strong> 更新 <strong>$user</strong> 的 <strong>remember_token</strong> 字段</li>
+<li>retrieveByCredentials : 根据凭证数据获取一个 <strong>UserInterface</strong> 的实例。</li>
+<li>validateCredentials ： 比较 $user 和 $credentials 来认证这个用户。
+如上接口laravel也封装好了默认的实现类，分别是 <code>EloquentUserProvider</code> 和 <code>DatabaseUserProvider</code> 。当providers配置驱动(driver)为 &lsquo;eloquent&rsquo; 时即为前者，配置驱动为 &lsquo;database&rsquo; 时使用后者。可以查看这两个类源码看具体接口实现。</li>
+</ul>
+<p>自定义providers的注册与配置，自定义好providers后在AuthServiceProvider的boot方法中注册</p>
+<pre><code>class AuthServiceProvider extends ServiceProvider
+{
+    /**
+     * Register any application authentication / authorization services.
+     *
+     * @return void
+     */
+    public function boot()
+    {
+        $this-&gt;registerPolicies();
+
+        Auth::provider('riak', function ($app, array $config) {
+            return new RiakUserProvider($app-&gt;make('riak.connection'));
+        });
+    }
+}
+</code></pre><p>而后在config/auth.php中配置</p>
+<pre><code>    'providers' =&gt; [
+        'users' =&gt; [
+            'driver' =&gt; 'riak',
+            'model' =&gt; App\User::class,
+        ],
+</code></pre><h4 id="自定义model">自定义Model。</h4>
+<p>自定义model需要实现接口 <strong>Illuminate\Contracts\Auth\Authenticatable</strong></p>
+<p>系统默认实现好了一个 <strong>User</strong> model类，并使用trait  <strong>Illuminate\Auth\Authenticatable</strong> 实现接口了接口中的方法，当自定义时可以在源码实现中参考。</p>
+<hr>
+<h3 id="登录认证过程">登录认证过程</h3>
+<p>讲完上面的基础知识后，看一遍laravel生成的登录认证过程吧！</p>
+<p>当使用命令 <code>php artisan make:auth</code>后，系统会生成了一些脚手架。首先是routes/web.php中，增加了一些路由如下:</p>
+<pre><code>Auth::routes();
+Route::get('/', 'HomeController@index')-&gt;name('home');
+</code></pre><p>跟中源码可得,Auth::routes()实际上是调用Illuminate/Routing/Router类的auth方法.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-php" data-lang="php">    <span style="color:#e6db74">/**
+</span><span style="color:#e6db74">     * Register the typical authentication routes for an application.
+</span><span style="color:#e6db74">     *
+</span><span style="color:#e6db74">     * @return void
+</span><span style="color:#e6db74">     */</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">function</span> <span style="color:#a6e22e">auth</span>()
+    {
+        <span style="color:#75715e">// Authentication Routes...
+</span><span style="color:#75715e"></span>        $this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">get</span>(<span style="color:#e6db74">&#39;login&#39;</span>, <span style="color:#e6db74">&#39;Auth\LoginController@showLoginForm&#39;</span>)<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">name</span>(<span style="color:#e6db74">&#39;login&#39;</span>);
+        $this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">post</span>(<span style="color:#e6db74">&#39;login&#39;</span>, <span style="color:#e6db74">&#39;Auth\LoginController@login&#39;</span>);
+        $this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">post</span>(<span style="color:#e6db74">&#39;logout&#39;</span>, <span style="color:#e6db74">&#39;Auth\LoginController@logout&#39;</span>)<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">name</span>(<span style="color:#e6db74">&#39;logout&#39;</span>);
+
+        <span style="color:#75715e">// Registration Routes...
+</span><span style="color:#75715e"></span>        $this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">get</span>(<span style="color:#e6db74">&#39;register&#39;</span>, <span style="color:#e6db74">&#39;Auth\RegisterController@showRegistrationForm&#39;</span>)<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">name</span>(<span style="color:#e6db74">&#39;register&#39;</span>);
+        $this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">post</span>(<span style="color:#e6db74">&#39;register&#39;</span>, <span style="color:#e6db74">&#39;Auth\RegisterController@register&#39;</span>);
+
+        <span style="color:#75715e">// Password Reset Routes...
+</span><span style="color:#75715e"></span>        $this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">get</span>(<span style="color:#e6db74">&#39;password/reset&#39;</span>, <span style="color:#e6db74">&#39;Auth\ForgotPasswordController@showLinkRequestForm&#39;</span>)<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">name</span>(<span style="color:#e6db74">&#39;password.request&#39;</span>);
+        $this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">post</span>(<span style="color:#e6db74">&#39;password/email&#39;</span>, <span style="color:#e6db74">&#39;Auth\ForgotPasswordController@sendResetLinkEmail&#39;</span>)<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">name</span>(<span style="color:#e6db74">&#39;password.email&#39;</span>);
+        $this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">get</span>(<span style="color:#e6db74">&#39;password/reset/{token}&#39;</span>, <span style="color:#e6db74">&#39;Auth\ResetPasswordController@showResetForm&#39;</span>)<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">name</span>(<span style="color:#e6db74">&#39;password.reset&#39;</span>);
+        $this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">post</span>(<span style="color:#e6db74">&#39;password/reset&#39;</span>, <span style="color:#e6db74">&#39;Auth\ResetPasswordController@reset&#39;</span>);
+    }
+</code></pre></div><p>而后进行登录操作，跳转到Auth\LoginController的showLoginForm方法。</p>
+<blockquote>
+<p>在LoginController中会发现没有showLoginForm方法，该类使用了<code>AuthenticatesUsers</code>这个trait实现了Auth::routes()路由中LoginController的方法。</p>
+</blockquote>
+<p>showLoginForm方法如下:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-php" data-lang="php">    <span style="color:#e6db74">/**
+</span><span style="color:#e6db74">     * Show the application&#39;s login form.
+</span><span style="color:#e6db74">     *
+</span><span style="color:#e6db74">     * @return \Illuminate\Http\Response
+</span><span style="color:#e6db74">     */</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">function</span> <span style="color:#a6e22e">showLoginForm</span>()
+    {
+        <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">view</span>(<span style="color:#e6db74">&#39;auth.login&#39;</span>);
+    }
+</code></pre></div><p>返回默认生成的login视图，login视图的表单中有一行代码为</p>
+<pre><code>&lt;form class=&quot;form-horizontal&quot; role=&quot;form&quot; method=&quot;POST&quot; action=&quot;{{ route('login') }}&quot;&gt;
+</code></pre><p>即表单账号数据post到路由login中，回到web.php可以看到post到login对应的方法的为Auth\LoginController的login方法。方法源码如下。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-php" data-lang="php">    <span style="color:#e6db74">/**
+</span><span style="color:#e6db74">     * Handle a login request to the application.
+</span><span style="color:#e6db74">     *
+</span><span style="color:#e6db74">     * @param  \Illuminate\Http\Request  $request
+</span><span style="color:#e6db74">     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Http\Response
+</span><span style="color:#e6db74">     */</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">function</span> <span style="color:#a6e22e">login</span>(<span style="color:#a6e22e">Request</span> $request)
+    {
+        $this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">validateLogin</span>($request);
+
+        <span style="color:#75715e">// If the class is using the ThrottlesLogins trait, we can automatically throttle
+</span><span style="color:#75715e"></span>        <span style="color:#75715e">// the login attempts for this application. We&#39;ll key this by the username and
+</span><span style="color:#75715e"></span>        <span style="color:#75715e">// the IP address of the client making these requests into this application.
+</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">if</span> ($this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">hasTooManyLoginAttempts</span>($request)) {
+            $this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">fireLockoutEvent</span>($request);
+
+            <span style="color:#66d9ef">return</span> $this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">sendLockoutResponse</span>($request);
+        }
+
+        <span style="color:#66d9ef">if</span> ($this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">attemptLogin</span>($request)) {
+            <span style="color:#66d9ef">return</span> $this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">sendLoginResponse</span>($request);
+        }
+
+        <span style="color:#75715e">// If the login attempt was unsuccessful we will increment the number of attempts
+</span><span style="color:#75715e"></span>        <span style="color:#75715e">// to login and redirect the user back to the login form. Of course, when this
+</span><span style="color:#75715e"></span>        <span style="color:#75715e">// user surpasses their maximum number of attempts they will get locked out.
+</span><span style="color:#75715e"></span>        $this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">incrementLoginAttempts</span>($request);
+
+        <span style="color:#66d9ef">return</span> $this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">sendFailedLoginResponse</span>($request);
+    }
+
+</code></pre></div><p>首先是<code>$this-&gt;validateLogin($request);</code>,源码为：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-php" data-lang="php">    <span style="color:#e6db74">/**
+</span><span style="color:#e6db74">     * Validate the user login request.
+</span><span style="color:#e6db74">     *
+</span><span style="color:#e6db74">     * @param  \Illuminate\Http\Request  $request
+</span><span style="color:#e6db74">     * @return void
+</span><span style="color:#e6db74">     */</span>
+    <span style="color:#66d9ef">protected</span> <span style="color:#66d9ef">function</span> <span style="color:#a6e22e">validateLogin</span>(<span style="color:#a6e22e">Request</span> $request)
+    {
+        $this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">validate</span>($request, [
+            $this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">username</span>() <span style="color:#f92672">=&gt;</span> <span style="color:#e6db74">&#39;required|string&#39;</span>,
+            <span style="color:#e6db74">&#39;password&#39;</span> <span style="color:#f92672">=&gt;</span> <span style="color:#e6db74">&#39;required|string&#39;</span>,
+        ]);
+    }
+</code></pre></div><p>即验证用户的请求中用户的表单填写是否正确，这里的验证规则是 <code>$this-&gt;username</code>和<code>password</code>字段必须是非空且是string类型。
+如果验证规则不通过，将会抛出<code>ValidationException</code>异常，也就停止了login()函数往下走了。<code>$this-&gt;username</code>字段值默认是<code>email</code>,可以在LoginController中重写username()方法，返回别的字段名如<code>user_name</code>。</p>
+<p>回到login()函数，当验证规则通过后，login函数往下走，</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-php" data-lang="php">        <span style="color:#66d9ef">if</span> ($this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">hasTooManyLoginAttempts</span>($request)) {
+            $this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">fireLockoutEvent</span>($request);
+
+            <span style="color:#66d9ef">return</span> $this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">sendLockoutResponse</span>($request);
+        }
+</code></pre></div><p>判断该请求是否多次登录尝试，laravel有多次登录尝试时锁定一分钟不能登录的机制，这里跳过继续往下走。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-php" data-lang="php">        <span style="color:#66d9ef">if</span> ($this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">attemptLogin</span>($request)) {
+            <span style="color:#66d9ef">return</span> $this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">sendLoginResponse</span>($request);
+        }
+</code></pre></div><p>尝试登录。登录成功则发送登录成功响应。不过不成功，login函数往下走，增加这个请求的登录尝试次数，上文提到当多次请求将被锁定。最后发送登录失败响应。</p>
+<p>回到attemptLogin方法，</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-php" data-lang="php">    <span style="color:#e6db74">/**
+</span><span style="color:#e6db74">     * Attempt to log the user into the application.
+</span><span style="color:#e6db74">     *
+</span><span style="color:#e6db74">     * @param  \Illuminate\Http\Request  $request
+</span><span style="color:#e6db74">     * @return bool
+</span><span style="color:#e6db74">     */</span>
+    <span style="color:#66d9ef">protected</span> <span style="color:#66d9ef">function</span> <span style="color:#a6e22e">attemptLogin</span>(<span style="color:#a6e22e">Request</span> $request)
+    {
+        <span style="color:#66d9ef">return</span> $this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">guard</span>()<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">attempt</span>(
+            $this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">credentials</span>($request), $request<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">has</span>(<span style="color:#e6db74">&#39;remember&#39;</span>)
+        );
+    }
+</code></pre></div><p>调用门卫Guard进行登录尝试。这里的<code>$this-&gt;guard()</code>方法的实现是<code> return Auth::guard();</code>,再跳转到Auth::guard()方法，</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-php" data-lang="php">    <span style="color:#e6db74">/**
+</span><span style="color:#e6db74">     * Attempt to get the guard from the local cache.
+</span><span style="color:#e6db74">     *
+</span><span style="color:#e6db74">     * @param  string  $name
+</span><span style="color:#e6db74">     * @return \Illuminate\Contracts\Auth\Guard|\Illuminate\Contracts\Auth\StatefulGuard
+</span><span style="color:#e6db74">     */</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">function</span> <span style="color:#a6e22e">guard</span>($name <span style="color:#f92672">=</span> <span style="color:#66d9ef">null</span>)
+    {
+        $name <span style="color:#f92672">=</span> $name <span style="color:#f92672">?:</span> $this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">getDefaultDriver</span>();
+
+        <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">isset</span>($this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">guards</span>[$name])
+                    <span style="color:#f92672">?</span> $this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">guards</span>[$name]
+                    <span style="color:#f92672">:</span> $this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">guards</span>[$name] <span style="color:#f92672">=</span> $this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">resolve</span>($name);
+    }
+</code></pre></div><p>这里获取配置中配置使用的guard，由于不指定，所以按照config/auth.php配置后默认使用的是<code>web</code>这个guard，<code>web</code> guard配置的driver是 <code>session</code>,所以回到上文，<code>$this-&gt;guard()-&gt;attempt()</code>方法实际上调用的是 <strong>SessionGuard</strong> 类中的<code>attempt</code>方法。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-php" data-lang="php">    <span style="color:#e6db74">/**
+</span><span style="color:#e6db74">     * Attempt to authenticate a user using the given credentials.
+</span><span style="color:#e6db74">     *
+</span><span style="color:#e6db74">     * @param  array  $credentials
+</span><span style="color:#e6db74">     * @param  bool   $remember
+</span><span style="color:#e6db74">     * @return bool
+</span><span style="color:#e6db74">     */</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">function</span> <span style="color:#a6e22e">attempt</span>(<span style="color:#66d9ef">array</span> $credentials <span style="color:#f92672">=</span> [], $remember <span style="color:#f92672">=</span> <span style="color:#66d9ef">false</span>)
+    {
+        $this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">fireAttemptEvent</span>($credentials, $remember);
+
+        $this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">lastAttempted</span> <span style="color:#f92672">=</span> $user <span style="color:#f92672">=</span> $this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">provider</span><span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">retrieveByCredentials</span>($credentials);
+
+        <span style="color:#75715e">// If an implementation of UserInterface was returned, we&#39;ll ask the provider
+</span><span style="color:#75715e"></span>        <span style="color:#75715e">// to validate the user against the given credentials, and if they are in
+</span><span style="color:#75715e"></span>        <span style="color:#75715e">// fact valid we&#39;ll log the users into the application and return true.
+</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">if</span> ($this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">hasValidCredentials</span>($user, $credentials)) {
+            $this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">login</span>($user, $remember);
+
+            <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">true</span>;
+        }
+
+        <span style="color:#75715e">// If the authentication attempt fails we will fire an event so that the user
+</span><span style="color:#75715e"></span>        <span style="color:#75715e">// may be notified of any suspicious attempts to access their account from
+</span><span style="color:#75715e"></span>        <span style="color:#75715e">// an unrecognized user. A developer may listen to this event as needed.
+</span><span style="color:#75715e"></span>        $this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">fireFailedEvent</span>($user, $credentials);
+
+        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">false</span>;
+    }
+</code></pre></div><p>第一行发送事件跳过，第二行<code>$this-&gt;lastAttempted = $user = $this-&gt;provider-&gt;retrieveByCredentials($credentials);</code>通过provider的<code>retrieveByCredentials</code>方法根据请求中携带的凭证获得Model的实例对象。这里根据在 <strong>config/auth.php</strong> 中的配置，跳转到 <strong>EloquentUserProvider</strong> 的 <code>retrieveByCredentials</code> 方法。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-php" data-lang="php">    <span style="color:#e6db74">/**
+</span><span style="color:#e6db74">     * Retrieve a user by the given credentials.
+</span><span style="color:#e6db74">     *
+</span><span style="color:#e6db74">     * @param  array  $credentials
+</span><span style="color:#e6db74">     * @return \Illuminate\Contracts\Auth\Authenticatable|null
+</span><span style="color:#e6db74">     */</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">function</span> <span style="color:#a6e22e">retrieveByCredentials</span>(<span style="color:#66d9ef">array</span> $credentials)
+    {
+        <span style="color:#66d9ef">if</span> (<span style="color:#66d9ef">empty</span>($credentials)) {
+            <span style="color:#66d9ef">return</span>;
+        }
+
+        <span style="color:#75715e">// First we will add each credential element to the query as a where clause.
+</span><span style="color:#75715e"></span>        <span style="color:#75715e">// Then we can execute the query and, if we found a user, return it in a
+</span><span style="color:#75715e"></span>        <span style="color:#75715e">// Eloquent User &#34;model&#34; that will be utilized by the Guard instances.
+</span><span style="color:#75715e"></span>        $query <span style="color:#f92672">=</span> $this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">createModel</span>()<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">newQuery</span>();
+
+        <span style="color:#66d9ef">foreach</span> ($credentials <span style="color:#66d9ef">as</span> $key <span style="color:#f92672">=&gt;</span> $value) {
+            <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span> <span style="color:#a6e22e">Str</span><span style="color:#f92672">::</span><span style="color:#a6e22e">contains</span>($key, <span style="color:#e6db74">&#39;password&#39;</span>)) {
+                $query<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">where</span>($key, $value);
+            }
+        }
+
+        <span style="color:#66d9ef">return</span> $query<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">first</span>();
+    }
+</code></pre></div><p>获得User这个model的查询构造器后根据凭证里面的键值对查询数据库中是否存在该对象，查询时不比对 <code>password</code> ，因为该字段在后面验证账号时才比对。</p>
+<p>然后attempt方法往下走，</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-php" data-lang="php">    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">function</span> <span style="color:#a6e22e">attempt</span>(<span style="color:#66d9ef">array</span> $credentials <span style="color:#f92672">=</span> [], $remember <span style="color:#f92672">=</span> <span style="color:#66d9ef">false</span>)
+    {
+        <span style="color:#75715e">// 省略
+</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">if</span> ($this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">hasValidCredentials</span>($user, $credentials)) {
+            $this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">login</span>($user, $remember);
+
+            <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">true</span>;
+        }
+        <span style="color:#75715e">// 省略
+</span><span style="color:#75715e"></span>    }
+
+        <span style="color:#e6db74">/**
+</span><span style="color:#e6db74">     * Determine if the user matches the credentials.
+</span><span style="color:#e6db74">     *
+</span><span style="color:#e6db74">     * @param  mixed  $user
+</span><span style="color:#e6db74">     * @param  array  $credentials
+</span><span style="color:#e6db74">     * @return bool
+</span><span style="color:#e6db74">     */</span>
+    <span style="color:#66d9ef">protected</span> <span style="color:#66d9ef">function</span> <span style="color:#a6e22e">hasValidCredentials</span>($user, $credentials)
+    {
+        <span style="color:#66d9ef">return</span> <span style="color:#f92672">!</span> <span style="color:#a6e22e">is_null</span>($user) <span style="color:#f92672">&amp;&amp;</span> $this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">provider</span><span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">validateCredentials</span>($user, $credentials);
+    }
+
+</code></pre></div><p>根据凭证获得User这个模型的对象实例后，在 <code>hasValidCredentials</code> 方法判断实例是否为空，因为假设凭证数据在查询构造器中没有获得实例对象说明不存在这个数据。当 <code>$user</code> 不为空，在 <code>validateCredentials</code> 中，判断密码是否正确。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-php" data-lang="php">    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">function</span> <span style="color:#a6e22e">validateCredentials</span>(<span style="color:#a6e22e">UserContract</span> $user, <span style="color:#66d9ef">array</span> $credentials)
+    {
+        $plain <span style="color:#f92672">=</span> $credentials[<span style="color:#e6db74">&#39;password&#39;</span>];
+
+        <span style="color:#66d9ef">return</span> $this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">hasher</span><span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">check</span>($plain, $user<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">getAuthPassword</span>());
+    }
+</code></pre></div><p>在源码中可以看到默认的登录注册是将提交的密码hash加密后再与数据库中的 <code>$user</code> 对象的 <code>getAuthPassword()</code> 比较。 <code>getAuthPassword()</code> 的实现在 <code>Illuminate\Auth\Authenticatable</code> 如下。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-php" data-lang="php">    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">function</span> <span style="color:#a6e22e">getAuthPassword</span>()
+    {
+        <span style="color:#66d9ef">return</span> $this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">password</span>;
+    }
+</code></pre></div><p>回到attempt函数，当认证通过后，调用login函数，login函数主要做以下几件事：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-php" data-lang="php">    <span style="color:#e6db74">/**
+</span><span style="color:#e6db74">     * Log a user into the application.
+</span><span style="color:#e6db74">     *
+</span><span style="color:#e6db74">     * @param  \Illuminate\Contracts\Auth\Authenticatable  $user
+</span><span style="color:#e6db74">     * @param  bool  $remember
+</span><span style="color:#e6db74">     * @return void
+</span><span style="color:#e6db74">     */</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">function</span> <span style="color:#a6e22e">login</span>(<span style="color:#a6e22e">AuthenticatableContract</span> $user, $remember <span style="color:#f92672">=</span> <span style="color:#66d9ef">false</span>)
+    {
+        $this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">updateSession</span>($user<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">getAuthIdentifier</span>());
+
+        <span style="color:#75715e">// If the user should be permanently &#34;remembered&#34; by the application we will
+</span><span style="color:#75715e"></span>        <span style="color:#75715e">// queue a permanent cookie that contains the encrypted copy of the user
+</span><span style="color:#75715e"></span>        <span style="color:#75715e">// identifier. We will then decrypt this later to retrieve the users.
+</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">if</span> ($remember) {
+            $this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">ensureRememberTokenIsSet</span>($user);
+
+            $this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">queueRecallerCookie</span>($user);
+        }
+
+        <span style="color:#75715e">// If we have an event dispatcher instance set we will fire an event so that
+</span><span style="color:#75715e"></span>        <span style="color:#75715e">// any listeners will hook into the authentication events and run actions
+</span><span style="color:#75715e"></span>        <span style="color:#75715e">// based on the login and logout events fired from the guard instances.
+</span><span style="color:#75715e"></span>        $this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">fireLoginEvent</span>($user, $remember);
+
+        $this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">setUser</span>($user);
+    }
+</code></pre></div><ul>
+<li>更新session</li>
+<li>如果登录时有勾选 <code>Remember me</code> 选框，
+<ul>
+<li>生成一个token Id存储到 <code>User</code> 表中</li>
+<li>生成一个<code>remember me</code>的id到cookies中，据说是永久有效</li>
+</ul>
+</li>
+<li>发送登录事件。</li>
+</ul>
+<hr>
+<h3 id="注册认证过程">注册认证过程</h3>
+<p>注册的处理方法为 <code>RegisterController@register</code> 方法，同理在 trait <code>RegistersUsers</code>下。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-php" data-lang="php">    <span style="color:#e6db74">/**
+</span><span style="color:#e6db74">     * Handle a registration request for the application.
+</span><span style="color:#e6db74">     *
+</span><span style="color:#e6db74">     * @param  \Illuminate\Http\Request  $request
+</span><span style="color:#e6db74">     * @return \Illuminate\Http\Response
+</span><span style="color:#e6db74">     */</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">function</span> <span style="color:#a6e22e">register</span>(<span style="color:#a6e22e">Request</span> $request)
+    {
+        $this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">validator</span>($request<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">all</span>())<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">validate</span>();
+
+        <span style="color:#a6e22e">event</span>(<span style="color:#66d9ef">new</span> <span style="color:#a6e22e">Registered</span>($user <span style="color:#f92672">=</span> $this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">create</span>($request<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">all</span>())));
+
+        $this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">guard</span>()<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">login</span>($user);
+
+        <span style="color:#66d9ef">return</span> $this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">registered</span>($request, $user)
+                        <span style="color:#f92672">?:</span> <span style="color:#a6e22e">redirect</span>($this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">redirectPath</span>());
+    }
+</code></pre></div><p>注册则较为简单，第一行先根据表单填写是否符合规则，规则在  <code>RegisterController@validator</code> 下，当表单填写通过规则后，调用  <code>RegisterController@create</code> 方法在数据库中添加一行数据。而后调用 <code>SessionGuard@login</code> 方法，在上面分析过了。</p>
+<hr>
+<p>至此，登录注册认证过程源码追踪解析完毕！</p>
+
+
+
+
+      
+        <div class="blog-tags">
+          
+            <a
+              href="https://eoyohe.cn/tags/php/"
+              >php</a
+            >&nbsp;
+          
+            <a
+              href="https://eoyohe.cn/tags/laravel/"
+              >laravel</a
+            >&nbsp;
+          
+        </div>
+      
+
+      
+    </article>
+    
+    
+      
+
+    
+  </div>
+
+    <footer>
+  
+
+<div class="social-icons">
+  
+
+  
+</div>
+
+
+  
+  <div class="container">
+    <p class="credits copyright">
+      <a href="https://eoyohe.cn/about"></a>
+      &nbsp;&copy;
+      2017 - 
+      2021
+      
+        &nbsp;/&nbsp;
+        <a href="https://eoyohe.cn/">粤ICP备2022033411号</a>
+      
+      &nbsp;&ndash;&nbsp;
+      <em class="fas fa-moon" id="dark-mode-toggle"></em>
+    </p>
+  </div>
+</footer>
+
+  </body>
+</html>

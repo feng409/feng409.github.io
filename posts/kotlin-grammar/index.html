@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8" />
+<title>kotlin语法记录</title>
+<meta name="description" 
+      content=""
+>
+
+  
+
+
+
+
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link
+  rel="alternate"
+  type="application/rss+xml"
+  href="https://eoyohe.cn/index.xml"
+  title="chemf"
+/>
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="kotlin语法记录"/>
+<meta name="twitter:description" content="一个初学者的语法记录"/>
+
+
+
+<link rel="stylesheet" href="https://eoyohe.cn/fontawesome/css/all.min.css" />
+
+
+
+
+<link
+  crossorigin="anonymous"
+  href="/css/styles.min.css"
+  integrity=""
+  rel="preload stylesheet"
+  as="style"
+/>
+
+
+
+
+<link
+  id="dark-mode-theme"
+  crossorigin="anonymous"
+  href="/css/dark.min.css"
+  integrity=""
+  rel="preload stylesheet"
+  as="style"
+/>
+
+
+<script>
+  var darkTheme = document.getElementById('dark-mode-theme')
+  var storedTheme = localStorage.getItem('dark-mode-storage')
+
+  if (storedTheme === 'dark') {
+    darkTheme.disabled = false
+  } else if (storedTheme === 'light') {
+    darkTheme.disabled = true
+  }
+</script>
+
+
+<script defer crossorigin="anonymous" src="/js/theme.js" integrity=""></script>
+
+
+<script defer crossorigin="anonymous" src="/js/instantpage.min.js" integrity=""></script><meta name="generator" content="Hugo 0.83.1" />
+  </head>
+  <body>
+    
+  
+
+
+
+
+  <header>
+    <nav class="navbar">
+  <div class="nav">
+    
+
+    <ul class="nav-links">
+      
+    </ul>
+  </div>
+</nav>
+
+    <div class="intro-header">
+      <div class="container">
+        <div class="posts-heading">
+          
+            <h1>
+              kotlin语法记录
+            </h1>
+          
+          
+        </div>
+      </div>
+    </div>
+  </header>
+  
+
+    
+  <div class="container" role="main">
+    <article class="article" class="blog-post">
+      
+  <h4 id="概述">概述</h4>
+<p>主要总结在学些kotlin时候遇到的一些新概念(每学习一门语言总会遇到一些新概念的冲击),以及一些个人的理解，以下按照文档中的内容总结。</p>
+<h5 id="基本类型">基本类型</h5>
+<ul>
+<li>kotlin中一切都是对象，包括基本类型，这是因为基本类型会被进行了装箱操作<a href="#1">[1]</a>。</li>
+<li>和Java的转换：当定义变量为 <code>val a:Int?</code>时，在Java中显示a为integer对象，当定义变量<code>val a = 4</code> 时,在Java中为int变量</li>
+<li>kotlin中用数据类Array<!-- raw HTML omitted -->来表示不同类型的数组，创建并初始化数据。通过这种方式创建的成员在Java中调用的时候都是显示为对象类型，即进行了装箱操作，如果不想进行装箱操作则用<code>intArrayOf</code> <code>doubleArrayOf</code>等库函数</li>
+<li>字符串面值：kotlin多了一个<code>&quot;&quot;&quot;&quot;&quot;&quot;</code>来使用原声字符串，有点类似Python的<code>''''''</code>，即内部不进行转义操作。</li>
+<li>字符串模板：kotlin可在字符串中使用<code>模板表达式</code>，即可以在&quot;&ldquo;的字符串中通过<code>$变量名</code>或者<code>${表达式}</code>的方式插入值在字符串中，比Java省略了通过 %s %d等格式符再format的操作。有点类似shell</li>
+</ul>
+<h5 id="类和对象">类和对象</h5>
+<ul>
+<li>
+<p>嵌套类：</p>
+<ul>
+<li>kotlin的嵌套类跟Java一样用class声明即可，但是！默认是静态内部类。。需要声明为内部类的话则需要在声明处加inner 即 <code>inner class SubClass</code>，当初没注意踩了内部类和静态内部类的坑。</li>
+</ul>
+</li>
+<li>
+<p>对象表达式和对象声明：</p>
+<ul>
+<li>对象表达式为实现匿名内部类，因为kotlin没有new关键字可以直接创建接口或者抽象类对象，<br>
+此时可以通过对象表达式创建，方式为:</li>
+</ul>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">button<span style="color:#f92672">.</span><span style="color:#a6e22e">setOnClickListener</span><span style="color:#f92672">(</span>object <span style="color:#f92672">:</span>View<span style="color:#f92672">.</span><span style="color:#a6e22e">OnClickListener</span><span style="color:#f92672">{</span>
+    override fun <span style="color:#a6e22e">onClick</span><span style="color:#f92672">(</span>v<span style="color:#f92672">:</span> View<span style="color:#f92672">?)</span> <span style="color:#f92672">{</span>
+        TODO<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;not implemented&#34;</span><span style="color:#f92672">)</span> <span style="color:#75715e">//To change body of created functions use File | Settings | File Templates.
+</span><span style="color:#75715e"></span>    <span style="color:#f92672">}</span>
+<span style="color:#f92672">})</span>
+</code></pre></div><ul>
+<li>对象声明：在类中通过onject声明.官方文档的解释代码如下：</li>
+</ul>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">    object DataProviderManager <span style="color:#f92672">{</span>
+    fun <span style="color:#a6e22e">registerDataProvider</span><span style="color:#f92672">(</span>provider<span style="color:#f92672">:</span> DataProvider<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+     <span style="color:#75715e">// ……
+</span><span style="color:#75715e"></span>    <span style="color:#f92672">}</span> 
+    val allDataProviders<span style="color:#f92672">:</span> Collection<span style="color:#f92672">&lt;</span>DataProvider<span style="color:#f92672">&gt;</span>
+    <span style="color:#a6e22e">get</span><span style="color:#f92672">()</span> <span style="color:#f92672">=</span> <span style="color:#75715e">// ……
+</span><span style="color:#75715e"></span><span style="color:#f92672">}</span>
+</code></pre></div><p>即声明在类中后，类即有了一个DataProviderManager的静态类，并且会自动为其创建一个对象，实现原理如Java单例模式的静态内部类。</p>
+<ul>
+<li>
+<p>伴生对象：跟对象声明一样，不过不是 <code>object DataProviderManager</code>而是<code>companion object</code>作用为定义类的静态成员，弥补kotlin中没有static关键字，因此定义在此的成员可以通过<code>类名.</code> 限定符调用</p>
+<blockquote>
+<p>请注意， 即使伴⽣对象的成员看起来像其他语⾔的静态成员， 在运⾏时他们 仍然是真实对象的实例成员， ⽽且， 例如还可以实现接⼝：</p>
+</blockquote>
+<p>这句话有点看不懂，，，求解释</p>
+</li>
+</ul>
+</li>
+<li>
+<p>类委托：委托模式的支持实现，恶补了下委托模式，原来代理模式又名委托模式。。。</p>
+<ul>
+<li>使用方式：</li>
+</ul>
+<blockquote>
+</blockquote>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">interface</span> <span style="color:#a6e22e">Base</span> <span style="color:#f92672">{</span>
+    fun <span style="color:#a6e22e">print</span><span style="color:#f92672">()</span>
+<span style="color:#f92672">}</span> 
+<span style="color:#66d9ef">class</span> <span style="color:#a6e22e">BaseImpl</span><span style="color:#f92672">(</span>val x<span style="color:#f92672">:</span> Int<span style="color:#f92672">)</span> <span style="color:#f92672">:</span> Base <span style="color:#f92672">{</span>
+    override fun <span style="color:#a6e22e">print</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span> print<span style="color:#f92672">(</span>x<span style="color:#f92672">)</span> <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span> 
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * by关键字即是类委托的实现。 
+</span><span style="color:#75715e"> * 用法理解为Derived类实现Base接口，
+</span><span style="color:#75715e"> * 此时Derived类有了print方法
+</span><span style="color:#75715e"> * 通过by接口表示将b对象的方法委托给Derived对象
+</span><span style="color:#75715e"> * 从而当调用Derived对象的print方法时，
+</span><span style="color:#75715e"> * 实际调用的是构造方法里面b对象的方法
+</span><span style="color:#75715e"> * 因此Derived(b).print() 和 Derived(b).b.print()是一样的
+</span><span style="color:#75715e"> */</span>
+<span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Derived</span><span style="color:#f92672">(</span>val b<span style="color:#f92672">:</span> Base<span style="color:#f92672">)</span> <span style="color:#f92672">:</span> Base by b
+fun <span style="color:#a6e22e">main</span><span style="color:#f92672">(</span>args<span style="color:#f92672">:</span> Array<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">&gt;)</span> <span style="color:#f92672">{</span>
+    val b <span style="color:#f92672">=</span> BaseImpl<span style="color:#f92672">(</span>10<span style="color:#f92672">)</span>
+    Derived<span style="color:#f92672">(</span>b<span style="color:#f92672">).</span><span style="color:#a6e22e">print</span><span style="color:#f92672">()</span> <span style="color:#75715e">// 输出 10
+</span><span style="color:#75715e"></span><span style="color:#f92672">}</span>
+</code></pre></div><ul>
+<li>注：暂时没发现什么地方可以用到。。。代理模式还没用过</li>
+</ul>
+</li>
+<li>
+<p>属性委托：同委托模式的应用，作用如下。。</p>
+<ul>
+<li>延迟属性 （lazy properties） : 其值只在⾸次访问时计算，</li>
+<li>可观察属性 （observable properties） : 监听器会收到有关此属性变更的通知，</li>
+<li>把多个属性储存在⼀个映射 （map） 中， ⽽不是每个存在单独的字段中。</li>
+</ul>
+</li>
+</ul>
+<p><!-- raw HTML omitted -->Java中的自动装箱与拆箱<!-- raw HTML omitted --></p>
+
+
+
+
+      
+
+      
+    </article>
+    
+    
+      
+
+    
+  </div>
+
+    <footer>
+  
+
+<div class="social-icons">
+  
+
+  
+</div>
+
+
+  
+  <div class="container">
+    <p class="credits copyright">
+      <a href="https://eoyohe.cn/about"></a>
+      &nbsp;&copy;
+      2017 - 
+      2021
+      
+        &nbsp;/&nbsp;
+        <a href="https://eoyohe.cn/">粤ICP备2022033411号</a>
+      
+      &nbsp;&ndash;&nbsp;
+      <em class="fas fa-moon" id="dark-mode-toggle"></em>
+    </p>
+  </div>
+</footer>
+
+  </body>
+</html>

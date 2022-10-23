@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8" />
+<title>LAMP折腾记录</title>
+<meta name="description" 
+      content=""
+>
+
+  
+
+
+
+
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link
+  rel="alternate"
+  type="application/rss+xml"
+  href="https://eoyohe.cn/index.xml"
+  title="chemf"
+/>
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="LAMP折腾记录"/>
+<meta name="twitter:description" content="一个初学者的软件安装配置记录"/>
+
+
+
+<link rel="stylesheet" href="https://eoyohe.cn/fontawesome/css/all.min.css" />
+
+
+
+
+<link
+  crossorigin="anonymous"
+  href="/css/styles.min.css"
+  integrity=""
+  rel="preload stylesheet"
+  as="style"
+/>
+
+
+
+
+<link
+  id="dark-mode-theme"
+  crossorigin="anonymous"
+  href="/css/dark.min.css"
+  integrity=""
+  rel="preload stylesheet"
+  as="style"
+/>
+
+
+<script>
+  var darkTheme = document.getElementById('dark-mode-theme')
+  var storedTheme = localStorage.getItem('dark-mode-storage')
+
+  if (storedTheme === 'dark') {
+    darkTheme.disabled = false
+  } else if (storedTheme === 'light') {
+    darkTheme.disabled = true
+  }
+</script>
+
+
+<script defer crossorigin="anonymous" src="/js/theme.js" integrity=""></script>
+
+
+<script defer crossorigin="anonymous" src="/js/instantpage.min.js" integrity=""></script><meta name="generator" content="Hugo 0.83.1" />
+  </head>
+  <body>
+    
+  
+
+
+
+
+  <header>
+    <nav class="navbar">
+  <div class="nav">
+    
+
+    <ul class="nav-links">
+      
+    </ul>
+  </div>
+</nav>
+
+    <div class="intro-header">
+      <div class="container">
+        <div class="posts-heading">
+          
+            <h1>
+              LAMP折腾记录
+            </h1>
+          
+          
+        </div>
+      </div>
+    </div>
+  </header>
+  
+
+    
+  <div class="container" role="main">
+    <article class="article" class="blog-post">
+      
+  <h4 id="环境">环境</h4>
+<blockquote>
+<p>Linux Ubuntu 16.04.1<br>
+Linux下CentOS和Ubuntu的配置文件略有不同<br>
+CentOS的配置文件为httpd.conf<br>
+Ubuntu为apache2.conf</p>
+</blockquote>
+<h4 id="安装">安装</h4>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">sudo apt install mysql-server apache2 php
+</code></pre></div><h4 id="配置">配置</h4>
+<ul>
+<li>配置虚拟主机<br>
+在/etc/apache2/sites-enabled/000-default.conf添加如下配置：
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">    &lt;VirtualHost *:8080&gt; <span style="color:#75715e">#监听的端口号</span>
+
+      ServerAdmin webmaster@localhost <span style="color:#75715e">#服务器返回给客户端的错误信息中包含的管理员邮件地址 可忽略</span>
+      DocumentRoot /home/feng/workspace/php/MsgBoard# 网站的根目录文件夹，注意这个文件夹的权限必须是755，并且这个文件夹的上层文件夹的权限也是755,不然会出现403错误。
+
+      ErrorLog <span style="color:#e6db74">${</span>APACHE_LOG_DIR<span style="color:#e6db74">}</span>/error_8080.log <span style="color:#75715e"># 错误日志位置</span>
+      CustomLog <span style="color:#e6db74">${</span>APACHE_LOG_DIR<span style="color:#e6db74">}</span>/access_8080.log combined <span style="color:#75715e">#记录着访问日志</span>
+    &lt;/VirtualHost&gt;
+</code></pre></div></li>
+<li>目录树及文件说明
+<ul>
+<li>apache2.conf      <strong>apache配置文件</strong></li>
+<li>envvars <strong>apache环境变量配置文件</strong></li>
+<li>ports.conf <strong>监听端口配置文件</strong></li>
+<li>magic <strong>可以设置不同MIME类型文件的一些特殊标识</strong></li>
+<li>mods-enabled <strong>已经启用的模块</strong></li>
+<li>mods-available <strong>已经安装的模块</strong></li>
+<li>sites-enabled <strong>已启用站点配置</strong></li>
+<li>sites-available <strong>可用站点配置</strong></li>
+<li>conf-enabled <strong>已启用的Apache配置</strong></li>
+<li>conf-available <strong>所有Apache配置</strong></li>
+</ul>
+</li>
+<li>相关命令
+<ul>
+<li>a2disconf a2enconf <strong>禁止/启用相关配置文件</strong></li>
+<li>a2dismod a2enmod <strong>禁止/启用相关模块</strong></li>
+<li>a2dissite a2ensite <strong>禁止/启用相关虚拟主机</strong></li>
+<li>apache2ctl <strong>apache http 服务控制接口</strong></li>
+</ul>
+</li>
+<li>相关知识
+<ul>
+<li>&lt;Directory &ldquo;路径&rdquo;&gt;<!-- raw HTML omitted -->标签定义了用户访问控制，后面的路径指定要控制的目标路径</li>
+<li>Options 选项
+<ul>
+<li>Indexes: 是否允许索引页面文件（不安全，建议关闭）；</li>
+<li>FollowSynLinks: 是否跟随软链接文件（不安全，建议关闭）；</li>
+<li>SymLinksifOwnerMatch:相对安全的跟随软链接指令（如果软链接文件的属主与网页访问用户匹配则允许）</li>
+<li>ExecCGI：是否允许执行CGI脚本;</li>
+<li>All</li>
+<li>None</li>
+</ul>
+</li>
+<li>AllowOverride 指允许使用与认证授权相关的指令</li>
+<li>directive-type可以是下列各组指令之一：</li>
+<li>AuthConfig：允许使用与认证授权相关的指令(AuthDBMGroupFile, AuthDBMUserFile, AuthGroupFile, AuthName, AuthType, AuthUserFile, Require, 等)。</li>
+<li>AuthName &ldquo;Realm&rdquo;：认证名称是什么，描述信息，可以任意给，告诉客户端这里为什么要认证</li>
+<li>AuthType：认证类型，一般有两种：Basic：基本认证；digest：摘要认证（不是所有浏览器都支持）；通常都是基本认证；</li>
+<li>AuthUserFile：用户认证文件所存放的位置（可以是文本文件、数据库、ldap等，通过动态加载相应的模块实现，默认是保存在文本文件中）</li>
+<li>AuthGroupFile：组文件所存放的位置（基于组用户的认证与用户类似）</li>
+<li>Require：指明认证的用户是哪些，可以是多个用户，用户名之间用空格隔开；如果是所有合法用户，则为“valid-user”；</li>
+</ul>
+</li>
+<li>访问控制：
+<ul>
+<li>在Apache2.4以前版本,通过以下命令控制：
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"> Order：定义allow和deny哪个为默认法则；写在后面的为默认法则：写在前面的指令没有显式定义的即受后面的指令控制；
+ Order allow,deny
+ Deny from 192.168.1.2       <span style="color:#75715e">#拒绝所有的iP访问</span>
+ allow from 192.168.1.0/24   <span style="color:#75715e">#仅允许192.168.1.0网段的IP访问（但拒绝192.168.1.2：最小范围优先匹配原则）</span>
+</code></pre></div></li>
+<li>在Apache2.4及以后版本，通过Require控制：
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"> Require all granted <span style="color:#75715e"># 允许所有请求</span>
+ Require all denied  <span style="color:#75715e"># 允许所有请求</span>
+ Require ip 127.0.0.1 <span style="color:#75715e"># 允许ip127.0.0.1的请求</span>
+ Require host localhost <span style="color:#75715e"># 允许主机名localhost的请求</span>
+</code></pre></div></li>
+</ul>
+</li>
+</ul>
+<h4 id="优化">优化</h4>
+<ul>
+<li>目前水平那是不可能的╮(╯▽╰)╭</li>
+</ul>
+<h4 id="附">附</h4>
+<ul>
+<li><a href="http://kimi.it/281.html">AuthConfig</a>
+<blockquote>
+<p>AuthConfig 允许使用与认证授权相关的指令(AuthDBMGroupFile, AuthDBMUserFile, AuthGroupFile, AuthName, AuthType, AuthUserFile, Require, 等)。FileInfo 允许使用控制文档类型的指令(DefaultType, ErrorDocument, ForceType, LanguagePriority, SetHandler, SetInputFilter, SetOutputFilter, mod_mime中的 Add* 和 Remove* 指令等等)、控制文档元数据的指令(Header, RequestHeader, SetEnvIf, SetEnvIfNoCase, BrowserMatch, CookieExpires, CookieDomain, CookieStyle, CookieTracking, CookieName)、mod_rewrite中的指令(RewriteEngine, RewriteOptions, RewriteBase, RewriteCond, RewriteRule)和mod_actions中的Action指令。Indexes 允许使用控制目录索引的指令(AddDescription, AddIcon, AddIconByEncoding, AddIconByType, DefaultIcon, DirectoryIndex, FancyIndexing, HeaderName, IndexIgnore, IndexOptions, ReadmeName, 等)。Limit 允许使用控制主机访问的指令(Allow, Deny, Order)。Options[=Option,&hellip;] 允许使用控制指定目录功能的指令(Options和XBitHack)。可以在等号后面附加一个逗号分隔的(无空格的)Options选项列表，用来控制允许Options指令使用哪些选项。</p>
+</blockquote>
+</li>
+<li><a href="http://baike.baidu.com/item/htaccess?fr=aladdin">htaccess</a>
+<blockquote>
+<p>.htaccess文件(或者&quot;分布式配置文件&quot;）,全称是Hypertext Access(超文本入口)。提供了针对目录改变配置的方法， 即，在一个特定的文档目录中放置一个包含一个或多个指令的文件， 以作用于此目录及其所有子目录。作为用户，所能使用的命令受到限制。管理员可以通过Apache的AllowOverride指令来设置。</p>
+</blockquote>
+</li>
+<li>参考文章
+<ul>
+<li><a href="http://sweetpotato.blog.51cto.com/533893/1657668">Linux运维实战之Apache的基本配置（全局配置、主服务器配置</a></li>
+<li><a href="http://www.cnblogs.com/top5/archive/2009/09/22/1571709.html">Apache的Order Allow,Deny 详解</a></li>
+</ul>
+</li>
+</ul>
+
+
+
+
+      
+        <div class="blog-tags">
+          
+            <a
+              href="https://eoyohe.cn/tags/linux/"
+              >Linux</a
+            >&nbsp;
+          
+            <a
+              href="https://eoyohe.cn/tags/apache/"
+              >apache</a
+            >&nbsp;
+          
+        </div>
+      
+
+      
+    </article>
+    
+    
+      
+
+    
+  </div>
+
+    <footer>
+  
+
+<div class="social-icons">
+  
+
+  
+</div>
+
+
+  
+  <div class="container">
+    <p class="credits copyright">
+      <a href="https://eoyohe.cn/about"></a>
+      &nbsp;&copy;
+      2017 - 
+      2021
+      
+        &nbsp;/&nbsp;
+        <a href="https://eoyohe.cn/">粤ICP备2022033411号</a>
+      
+      &nbsp;&ndash;&nbsp;
+      <em class="fas fa-moon" id="dark-mode-toggle"></em>
+    </p>
+  </div>
+</footer>
+
+  </body>
+</html>

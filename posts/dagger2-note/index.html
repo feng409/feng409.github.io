@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8" />
+<title>dagger2_note</title>
+<meta name="description" 
+      content=""
+>
+
+  
+
+
+
+
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link
+  rel="alternate"
+  type="application/rss+xml"
+  href="https://eoyohe.cn/index.xml"
+  title="chemf"
+/>
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="dagger2_note"/>
+<meta name="twitter:description" content="一个初学者的 dagger2 框架记录"/>
+
+
+
+<link rel="stylesheet" href="https://eoyohe.cn/fontawesome/css/all.min.css" />
+
+
+
+
+<link
+  crossorigin="anonymous"
+  href="/css/styles.min.css"
+  integrity=""
+  rel="preload stylesheet"
+  as="style"
+/>
+
+
+
+
+<link
+  id="dark-mode-theme"
+  crossorigin="anonymous"
+  href="/css/dark.min.css"
+  integrity=""
+  rel="preload stylesheet"
+  as="style"
+/>
+
+
+<script>
+  var darkTheme = document.getElementById('dark-mode-theme')
+  var storedTheme = localStorage.getItem('dark-mode-storage')
+
+  if (storedTheme === 'dark') {
+    darkTheme.disabled = false
+  } else if (storedTheme === 'light') {
+    darkTheme.disabled = true
+  }
+</script>
+
+
+<script defer crossorigin="anonymous" src="/js/theme.js" integrity=""></script>
+
+
+<script defer crossorigin="anonymous" src="/js/instantpage.min.js" integrity=""></script><meta name="generator" content="Hugo 0.83.1" />
+  </head>
+  <body>
+    
+  
+
+
+
+
+  <header>
+    <nav class="navbar">
+  <div class="nav">
+    
+
+    <ul class="nav-links">
+      
+    </ul>
+  </div>
+</nav>
+
+    <div class="intro-header">
+      <div class="container">
+        <div class="posts-heading">
+          
+            <h1>
+              dagger2_note
+            </h1>
+          
+          
+        </div>
+      </div>
+    </div>
+  </header>
+  
+
+    
+  <div class="container" role="main">
+    <article class="article" class="blog-post">
+      
+  <h2 id="module">@Module</h2>
+<blockquote>
+<p>提供创建类实例<br>
+使用Module来提供实例而不是直接用@Inject注解依赖类构造方法的好处是，<br>
+对于一些第三方类，不需要直接改动第三方类的代码添加@Inject</p>
+</blockquote>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a6e22e">@Module</span> <span style="color:#75715e">//@Provide标注的方法必须在@Module里面
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">AModule</span><span style="color:#f92672">{</span>
+  <span style="color:#a6e22e">@Provide</span> <span style="color:#75715e">//表示提供某某实例
+</span><span style="color:#75715e"></span>  A <span style="color:#a6e22e">provideA</span><span style="color:#f92672">(){</span><span style="color:#66d9ef">return</span> <span style="color:#66d9ef">new</span> A<span style="color:#f92672">();}</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><hr>
+<h2 id="inject">@Inject</h2>
+<blockquote>
+<p>标注目标类中所依赖的其他类，同样用注解来标注所依赖的其他类的构造函数</p>
+</blockquote>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">A</span><span style="color:#f92672">{</span>
+        <span style="color:#a6e22e">@Inject</span>
+        B b<span style="color:#f92672">;</span>
+   <span style="color:#f92672">}</span>
+
+   <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">B</span><span style="color:#f92672">{</span>
+       <span style="color:#a6e22e">@Inject</span>
+       B<span style="color:#f92672">(){</span>
+       <span style="color:#f92672">}</span>
+   <span style="color:#f92672">}</span>
+</code></pre></div><hr>
+<h2 id="component">@Component</h2>
+<blockquote>
+<p>在目标类中所依赖的其他类与其他类的构造函数之间可以起到一个桥梁的作用。<br>
+当一个类被@Component注解时，<code>make project</code>后将会生成对应的Dagger***(这里的***为该接口名)<br>
+当Compoent桥梁提供注入时，查找顺序首先为Module类里面提供的实例，如若找不到了再到依赖对象内去寻找@Inject注入构造器</p>
+</blockquote>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#75715e">/* Module 参数 表明到时候注入时去寻找的提供实例的类模板，加大括号可以添加多个类模板 
+</span><span style="color:#75715e"> * dependencies 参数 表明添加另一个Component作为当前Component的依赖，则当前类自动拥有依赖项的Module提供的实例
+</span><span style="color:#75715e"> */</span>
+<span style="color:#a6e22e">@Component</span><span style="color:#f92672">(</span>Module <span style="color:#f92672">=</span> <span style="color:#f92672">{</span>AModule<span style="color:#f92672">.</span><span style="color:#a6e22e">class</span><span style="color:#f92672">})</span> 
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">interface</span> <span style="color:#a6e22e">AComponent</span><span style="color:#f92672">(){</span>
+  
+<span style="color:#f92672">}</span>
+</code></pre></div><hr>
+<h2 id="singleton">@Singleton</h2>
+<blockquote>
+<p>单例注解，让依赖变为单例模式</p>
+</blockquote>
+<ul>
+<li>@Inject注入下的使用
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"> <span style="color:#a6e22e">@Singleton</span>
+ <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">A</span><span style="color:#f92672">{</span>
+         <span style="color:#a6e22e">@Inject</span>
+         <span style="color:#66d9ef">public</span> <span style="color:#a6e22e">A</span><span style="color:#f92672">(){</span>
+
+         <span style="color:#f92672">}</span>
+ <span style="color:#f92672">}</span>
+</code></pre></div></li>
+<li>@Module注入下的使用
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"> <span style="color:#a6e22e">@Module</span> 
+ <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">AModule</span><span style="color:#f92672">{</span>
+   <span style="color:#a6e22e">@Singleton</span>
+   <span style="color:#a6e22e">@Provide</span> 
+   A <span style="color:#a6e22e">provideA</span><span style="color:#f92672">(){</span><span style="color:#66d9ef">return</span> <span style="color:#66d9ef">new</span> A<span style="color:#f92672">();}</span>
+ <span style="color:#f92672">}</span>
+</code></pre></div></li>
+<li>以上两种对应的Component类都需要加上@Singleton</li>
+</ul>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a6e22e">@Singleton</span>
+<span style="color:#a6e22e">@Component</span><span style="color:#f92672">(</span>Module <span style="color:#f92672">=</span> <span style="color:#f92672">{</span>AModule<span style="color:#f92672">.</span><span style="color:#a6e22e">class</span><span style="color:#f92672">})</span> 
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">interface</span> <span style="color:#a6e22e">AComponent</span><span style="color:#f92672">(){</span>
+  
+<span style="color:#f92672">}</span>
+</code></pre></div><hr>
+<h2 id="scope">@Scope</h2>
+<blockquote>
+<p>自定义注解来制定注入对象的作用域，从而产生局部单例的效果(例如在MainActivity单例，在LoginActivity不是),对应每个Component一个实例</p>
+<ul>
+<li><a href="https://blog.piasy.com/2016/04/11/Dagger2-Scope-Instance">以下总结来自文章 【 Dagger2 Scope 注解能保证依赖在 component 生命周期内的单例性吗？】</a></li>
+<li>component 的 inject 函数不要声明基类参数</li>
+<li>Scope 注解必须用在 module 的 provide 方法上，否则并不能达到局部单例的效果</li>
+<li>如果 module 的 provide 方法使用了 scope 注解，那么 component 就必须使用同一个注解，否则编译会失败</li>
+<li>如果 module 的 provide 方法没有使用 scope 注解，那么 component 和 module 是否加注解都无关紧要，可以通过编译，但是没有局部单例效果</li>
+<li>对于直接使用 @Inject 构造函数的依赖，如果把 scope 注解放到它的类上，而不是构造函数上，就能达到局部单例的效果了</li>
+</ul>
+</blockquote>
+<hr>
+<h2 id="qualifier">@Qualifier</h2>
+<blockquote>
+<p>限定符，当一个Module中提供了同一个类的多个实例时，可以通过限定符选择相应的实例，<code>@Named</code>是Dagger2对于<code>@Qualifier</code>一个默认实现，用法如下：</p>
+</blockquote>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a6e22e">@Module</span> 
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">AModule</span><span style="color:#f92672">{</span>
+        <span style="color:#a6e22e">@Named</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;default&#34;</span><span style="color:#f92672">)</span>
+        <span style="color:#a6e22e">@Provide</span> 
+        A <span style="color:#a6e22e">provideA</span><span style="color:#f92672">(){</span><span style="color:#66d9ef">return</span> <span style="color:#66d9ef">new</span> A<span style="color:#f92672">();}</span>
+
+        <span style="color:#a6e22e">@Named</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;something&#34;</span><span style="color:#f92672">)</span>
+        <span style="color:#a6e22e">@Provide</span> 
+        A <span style="color:#a6e22e">provideA2</span><span style="color:#f92672">(){</span><span style="color:#66d9ef">return</span> <span style="color:#66d9ef">new</span> A<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;something&#34;</span><span style="color:#f92672">);}</span>
+<span style="color:#f92672">}</span>
+
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Main</span><span style="color:#f92672">(){</span>
+  <span style="color:#a6e22e">@Inject</span>
+  <span style="color:#a6e22e">@Named</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;something&#34;</span><span style="color:#f92672">)</span>
+  A somethingA<span style="color:#f92672">;</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><p>也可以自定义限定符的实现</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a6e22e">@Qualifier</span>
+<span style="color:#a6e22e">@Documented</span>
+<span style="color:#a6e22e">@Retention</span><span style="color:#f92672">(</span>RUNTIME<span style="color:#f92672">)</span>
+<span style="color:#66d9ef">public</span> <span style="color:#a6e22e">@interface</span> CustonQualiftier<span style="color:#f92672">{</span>
+        String <span style="color:#a6e22e">value</span><span style="color:#f92672">()</span> <span style="color:#66d9ef">default</span> <span style="color:#e6db74">&#34;&#34;</span><span style="color:#f92672">;</span><span style="color:#75715e">//如若不打算传参，不加这个参数也可以
+</span><span style="color:#75715e"></span><span style="color:#f92672">}</span>
+</code></pre></div><p>而后用法同<code>@Named</code>相似</p>
+<hr>
+<h3 id="依赖倒置原则"><strong><code>依赖倒置原则</code></strong>：</h3>
+<h5 id="抽象不应该依赖于具体具体应该依赖于抽象"><em>抽象不应该依赖于具体，具体应该依赖于抽象</em></h5>
+<p>解释如下，</p>
+<ul>
+<li>当抽象依赖于具体时，抽象类基本很少改动(里式替换原则)，当具体类A换了另一个具体类时B，便需要到抽象类修改依赖A为B</li>
+<li>当具体依赖于抽象时，由于里式替换原则，当抽象类A的实现类B替换为抽象类B时，只需要通过注入的方式修改抽象类的实现类即可，最简单的注入如 setXX() 或者 构造方法注入</li>
+</ul>
+<hr>
+<p><em>MVP 模式下的依赖倒置应用：</em></p>
+<ul>
+<li>Model 底层操作类，如数据库，网络请求</li>
+<li>View 视图层 数据的展示,如刷新按钮，图片加载</li>
+<li>Presenter 业务逻辑层, 链接V层和M层，因此持有M和V层的引用，将M层数据加以业务逻辑判断后传输给V层,</li>
+</ul>
+<p>根据软件设计原则，Presenter是属于高层次模块，View是低层次模块，因此View层需要实现接口，而Presenter不需要(关于Presenter要不要实现接口是一个受争议的话题，略),View层实现IView(基类)接口后，基于里式替换原则，一个Presenter在某种情况下可以在多个View中复用。</p>
+
+
+
+
+      
+
+      
+    </article>
+    
+    
+      
+
+    
+  </div>
+
+    <footer>
+  
+
+<div class="social-icons">
+  
+
+  
+</div>
+
+
+  
+  <div class="container">
+    <p class="credits copyright">
+      <a href="https://eoyohe.cn/about"></a>
+      &nbsp;&copy;
+      2017 - 
+      2021
+      
+        &nbsp;/&nbsp;
+        <a href="https://eoyohe.cn/">粤ICP备2022033411号</a>
+      
+      &nbsp;&ndash;&nbsp;
+      <em class="fas fa-moon" id="dark-mode-toggle"></em>
+    </p>
+  </div>
+</footer>
+
+  </body>
+</html>

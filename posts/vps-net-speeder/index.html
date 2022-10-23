@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8" />
+<title>VPS 网络加速小结</title>
+<meta name="description" 
+      content=""
+>
+
+  
+
+
+
+
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link
+  rel="alternate"
+  type="application/rss+xml"
+  href="https://eoyohe.cn/index.xml"
+  title="chemf"
+/>
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="VPS 网络加速小结"/>
+<meta name="twitter:description" content="记录 tcp 协议优化加速工具软件"/>
+
+
+
+<link rel="stylesheet" href="https://eoyohe.cn/fontawesome/css/all.min.css" />
+
+
+
+
+<link
+  crossorigin="anonymous"
+  href="/css/styles.min.css"
+  integrity=""
+  rel="preload stylesheet"
+  as="style"
+/>
+
+
+
+
+<link
+  id="dark-mode-theme"
+  crossorigin="anonymous"
+  href="/css/dark.min.css"
+  integrity=""
+  rel="preload stylesheet"
+  as="style"
+/>
+
+
+<script>
+  var darkTheme = document.getElementById('dark-mode-theme')
+  var storedTheme = localStorage.getItem('dark-mode-storage')
+
+  if (storedTheme === 'dark') {
+    darkTheme.disabled = false
+  } else if (storedTheme === 'light') {
+    darkTheme.disabled = true
+  }
+</script>
+
+
+<script defer crossorigin="anonymous" src="/js/theme.js" integrity=""></script>
+
+
+<script defer crossorigin="anonymous" src="/js/instantpage.min.js" integrity=""></script><meta name="generator" content="Hugo 0.83.1" />
+  </head>
+  <body>
+    
+  
+
+
+
+
+  <header>
+    <nav class="navbar">
+  <div class="nav">
+    
+
+    <ul class="nav-links">
+      
+    </ul>
+  </div>
+</nav>
+
+    <div class="intro-header">
+      <div class="container">
+        <div class="posts-heading">
+          
+            <h1>
+              VPS 网络加速小结
+            </h1>
+          
+          
+        </div>
+      </div>
+    </div>
+  </header>
+  
+
+    
+  <div class="container" role="main">
+    <article class="article" class="blog-post">
+      
+  <p>网络加速从应用层讲，可以通过代理机器，比如常见的网游加速器等</p>
+<p><img src="/img/%E4%B8%BB%E6%9C%BA%E4%BB%A3%E7%90%86%E8%BF%87%E7%A8%8B.jpg" alt=""></p>
+<p>通过中继节点加速网络请求。不过除了应用层，在底层上，也可以通过对 TCP/IP 层优化提高网络复用率从而提高网络体验。</p>
+<h2 id="加速工具">加速工具</h2>
+<p>从加速手段讲，可以有两种，<strong>单边加速</strong> 和 <strong>双边加速</strong></p>
+<h3 id="单边加速">单边加速</h3>
+<p>常见如 <code>锐速</code> <code>BBR</code> 等软件，通过优化底层的 <a href="https://blog.sometimesnaive.org/article/8.html"><strong>拥塞控制算法</strong></a>，提高网络传输速度。</p>
+<p>以下记录下用过的底层网络加速工具。</p>
+<h4 id="锐速-serverspeeder">锐速 ServerSpeeder</h4>
+<ul>
+<li>
+<p>介绍</p>
+<p>第一个接触的网络加速工具，国内公司开发的，不过已经闭源，据说转为面向企业用户，但是找不到官网都&hellip;</p>
+<p>目前网络上基本是破解版锐速安装，可以看下这个仓库 <a href="https://github.com/91yun/serverspeeder">serverspeeder</a>。提供下载安装以及一键脚本。</p>
+</li>
+<li>
+<p>原理</p>
+<p>锐速是从内核层次进行网络优化，其基本原理是通过系统算法预判，对可能丢包的数据包，重复再发一遍，也就是重复发包，从而降低了丢包率。因此使用锐速在一定程素上加速VPS的流量消耗。</p>
+<p>由于降低丢包率，因此锐速对于看视频之类的持续性数据传输的网络请求，会有比较明显的速度提升。</p>
+</li>
+<li>
+<p>总结</p>
+<p>通过重复发包降低丢包率，对于海外VPS提升明显，但由于缺少开源支持，持续更新，个人觉得会跟不上时代，比如目前锐速支持的内核才 3.1 内核</p>
+</li>
+</ul>
+<h4 id="谷歌bbr加速">谷歌BBR加速</h4>
+<ul>
+<li>
+<p>介绍</p>
+<p>来自谷歌内部员工开发的网络加速模块，第二个接触的加速工具，开源项目，仓库地址 <a href="https://github.com/google/bbr/">BBR</a> ，由于是开源项目，因此有网友进行各种参数调整等，所以还有</p>
+<ul>
+<li>BBR Plus</li>
+<li>BBR 魔改版</li>
+<li>BBR 原版</li>
+</ul>
+<p>这几个常见版本，具体特点以及效果对比，没有进行测试过。</p>
+</li>
+<li>
+<p>安装</p>
+<p>由于个人水平有限，因此用的是一键安装脚本进行的安装。一键脚本仓库 <a href="https://github.com/cx9208/Linux-NetSpeed">Linux-NetSpeed</a></p>
+<p>一键脚本安装方式</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">wget --no-check-certificate -O tcp.sh https://github.com/cx9208/Linux-NetSpeed/raw/master/tcp.sh <span style="color:#f92672">&amp;&amp;</span> chmod +x tcp.sh <span style="color:#f92672">&amp;&amp;</span> ./tcp.sh
+</code></pre></div></li>
+<li>
+<p>原理</p>
+<p>BBR 加速是通过调整拥塞控制算法，优化流量传输，就像道路交通，降低阻塞自然能提交车辆速度。</p>
+</li>
+<li>
+<p>总结</p>
+<p>开源持续更新项目，有Google亲爹，应该会比较香，看好 <code>BBR</code> 模块。</p>
+</li>
+</ul>
+<h3 id="双边加速">双边加速</h3>
+<p>单边加速是通过服务器端对TCP拥塞，丢包等情况进行优化，基于TCP包的协议基础上，而双边加速，一般是通过服务器和客户端建立一条自己的通信隧道，数据通信通过隧道传输，因此通信协议可以按照隧道内自有的数据协议传输，相当于黑盒操作。个人认为，就像 HTTP 通信，和自定义 RPC 通信同理。</p>
+<p>目前的双边加速，个人而言，只用过 <a href="https://github.com/xtaci/kcptun/">kcptun</a> 。</p>
+<h4 id="kcptun">kcptun</h4>
+<ul>
+<li>
+<p>介绍</p>
+<p>go 语言写的一款基于 <code>KCP</code> 协议实现的双边隧道通信工具，分为服务端和客户端。</p>
+<p>服务端监听指定端口，以及转发到目标端口。</p>
+<p>客户端同理，连接远程服务器端口，并本地监听端口。此后通过本地端口隧道进行通信。</p>
+<p><code>KCP</code> 协议可以在这里了解下。<a href="https://github.com/skywind3000/kcp">传送门</a></p>
+</li>
+<li>
+<p>安装</p>
+<p>可在 <a href="https://github.com/xtaci/kcptun/releases">release</a> 下载对应的操作系统版本。</p>
+<p>基于 ssh 隧道通信加速示范如下</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#75715e"># 服务器端</span>
+./server_linux_amd64 -t <span style="color:#e6db74">&#39;127.0.0.1:22&#39;</span> -l <span style="color:#e6db74">&#34;:4000&#34;</span> -mode fast3 -nocomp -sockbuf <span style="color:#ae81ff">16777217</span> -dscp <span style="color:#ae81ff">46</span>
+<span style="color:#75715e"># 本地机器</span>
+./client_darwin_amd64 -r <span style="color:#e6db74">&#39;server_host:4000&#39;</span> -l <span style="color:#e6db74">&#34;:8000&#34;</span> -mode fast3 -nocomp -autoexpire <span style="color:#ae81ff">900</span> -sockbuf <span style="color:#ae81ff">16777217</span> -dscp <span style="color:#ae81ff">46</span>
+<span style="color:#75715e"># 本地 ssh 连接远程服务器 </span>
+ssh ubuntu@127.0.0.1 -p <span style="color:#ae81ff">8000</span>
+</code></pre></div></li>
+</ul>
+
+
+
+
+      
+        <div class="blog-tags">
+          
+            <a
+              href="https://eoyohe.cn/tags/vps/"
+              >vps</a
+            >&nbsp;
+          
+        </div>
+      
+
+      
+    </article>
+    
+    
+      
+
+    
+  </div>
+
+    <footer>
+  
+
+<div class="social-icons">
+  
+
+  
+</div>
+
+
+  
+  <div class="container">
+    <p class="credits copyright">
+      <a href="https://eoyohe.cn/about"></a>
+      &nbsp;&copy;
+      2017 - 
+      2021
+      
+        &nbsp;/&nbsp;
+        <a href="https://eoyohe.cn/">粤ICP备2022033411号</a>
+      
+      &nbsp;&ndash;&nbsp;
+      <em class="fas fa-moon" id="dark-mode-toggle"></em>
+    </p>
+  </div>
+</footer>
+
+  </body>
+</html>

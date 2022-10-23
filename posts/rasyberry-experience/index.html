@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8" />
+<title>树莓派初体验</title>
+<meta name="description" 
+      content=""
+>
+
+  
+
+
+
+
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link
+  rel="alternate"
+  type="application/rss+xml"
+  href="https://eoyohe.cn/index.xml"
+  title="chemf"
+/>
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="树莓派初体验"/>
+<meta name="twitter:description" content="烧录 镜像配置"/>
+
+
+
+<link rel="stylesheet" href="https://eoyohe.cn/fontawesome/css/all.min.css" />
+
+
+
+
+<link
+  crossorigin="anonymous"
+  href="/css/styles.min.css"
+  integrity=""
+  rel="preload stylesheet"
+  as="style"
+/>
+
+
+
+
+<link
+  id="dark-mode-theme"
+  crossorigin="anonymous"
+  href="/css/dark.min.css"
+  integrity=""
+  rel="preload stylesheet"
+  as="style"
+/>
+
+
+<script>
+  var darkTheme = document.getElementById('dark-mode-theme')
+  var storedTheme = localStorage.getItem('dark-mode-storage')
+
+  if (storedTheme === 'dark') {
+    darkTheme.disabled = false
+  } else if (storedTheme === 'light') {
+    darkTheme.disabled = true
+  }
+</script>
+
+
+<script defer crossorigin="anonymous" src="/js/theme.js" integrity=""></script>
+
+
+<script defer crossorigin="anonymous" src="/js/instantpage.min.js" integrity=""></script><meta name="generator" content="Hugo 0.83.1" />
+  </head>
+  <body>
+    
+  
+
+
+
+
+  <header>
+    <nav class="navbar">
+  <div class="nav">
+    
+
+    <ul class="nav-links">
+      
+    </ul>
+  </div>
+</nav>
+
+    <div class="intro-header">
+      <div class="container">
+        <div class="posts-heading">
+          
+            <h1>
+              树莓派初体验
+            </h1>
+          
+          
+        </div>
+      </div>
+    </div>
+  </header>
+  
+
+    
+  <div class="container" role="main">
+    <article class="article" class="blog-post">
+      
+  <h3 id="1--烧录系统">1.  烧录系统</h3>
+<ol>
+<li>Linux</li>
+</ol>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sudo fdisk -l <span style="color:#75715e">#找出microSD卡所在的设备位置 我这里是 /dev/sdc</span>
+umount 挂载的目录 <span style="color:#75715e">#必须先卸载U盘，是卸除挂载，不是拔除</span>
+sudo dd <span style="color:#66d9ef">if</span><span style="color:#f92672">=</span>树莓派.img of<span style="color:#f92672">=</span>/dev/sdc bs<span style="color:#f92672">=</span>4M <span style="color:#75715e"># if参数是指树莓派img文件所在的路径，of是microSD卡所在的设备位置。  bs参数是每次传输的块大小</span>
+</code></pre></div><ol start="2">
+<li>Windows</li>
+</ol>
+<ul>
+<li>使用<a href="https://www.sdcard.org/downloads/formatter_4/">SDFormats</a>软件格式化TF卡</li>
+<li>使用<a href="https://sourceforge.net/projects/win32diskimager/">win32diskimager</a>软件将镜像拷贝进TF卡</li>
+</ul>
+<h3 id="2-ssh连接">2. ssh连接</h3>
+<ul>
+<li>首先是设置树莓派自动连接WiFi，在TF卡插入树莓派之前，在TF卡中etc分区添加以下信息</li>
+</ul>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e">#/etc/wpa_supplicant/wpa_supplicant.conf</span>
+<span style="color:#75715e"># 最常用的配置。WPA-PSK 加密方式。不需要删除文件其他东西，增加下面的即可</span>
+network<span style="color:#f92672">={</span>
+ssid<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;WiFi-name1&#34;</span><span style="color:#75715e">#WiFi名字</span>
+psk<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;WiFi-password1&#34;</span><span style="color:#75715e">#密码</span>
+priority<span style="color:#f92672">=</span>5#权重，当存在多个可连接WiFi时按权重优先
+<span style="color:#f92672">}</span>
+</code></pre></div><ul>
+<li>这里烧录的是树莓派的官方镜像<code>raspbian</code>，这里有个小小的坑，<strong>自 2016-11-25 官方发布的 Raspbian 系统镜像，系统默认禁用了 SSH 服务。</strong>,因此开机后<code>service ssh restart</code>即可使用ssh，或者拔出TF卡，在boot分区里面创建一个文件名为ssh的空白文件即可，<code>touch ssh</code>.</li>
+</ul>
+<blockquote>
+<p>注:raspbian默认账号:<br>
+用户名:pi<br>
+密码:raspbian</p>
+</blockquote>
+<h3 id="3-更新软件源">3. 更新软件源</h3>
+<blockquote>
+<p>装完Linux后一般都是换国内镜像源，可以提高软件源里面软件下载速度。因此装完系统第一步自然是换源了</p>
+</blockquote>
+<p>raspbian和Ubuntu一样是基于debian的，因此也是使用apt作为包管理器，但是raspbian除了apt的镜像源之外，还有一个自家的raspi的镜像源，在<code>/etc/apt/source.d/raspi.list</code>下，因此换源要两个都换。找了半天后配置源如下</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e">#/etc/apt/source.list</span>
+deb http://mirrors.opencas.cn/raspbian/raspbian/ jessie contrib firmware main non-free rpi
+deb-src http://mirrors.opencas.cn/raspbian/raspbian/ jessie contrib firmware main non-free rpi
+</code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e">#/etc/apt/source.d/raspi.list</span>
+deb http://mirrors.ustc.edu.cn/archive.raspberrypi.org/ jessie main ui
+deb-src http://mirrors.ustc.edu.cn/archive.raspberrypi.org/ jessie main ui
+</code></pre></div>
+
+
+
+      
+        <div class="blog-tags">
+          
+            <a
+              href="https://eoyohe.cn/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/"
+              >树莓派</a
+            >&nbsp;
+          
+        </div>
+      
+
+      
+    </article>
+    
+    
+      
+
+    
+  </div>
+
+    <footer>
+  
+
+<div class="social-icons">
+  
+
+  
+</div>
+
+
+  
+  <div class="container">
+    <p class="credits copyright">
+      <a href="https://eoyohe.cn/about"></a>
+      &nbsp;&copy;
+      2017 - 
+      2021
+      
+        &nbsp;/&nbsp;
+        <a href="https://eoyohe.cn/">粤ICP备2022033411号</a>
+      
+      &nbsp;&ndash;&nbsp;
+      <em class="fas fa-moon" id="dark-mode-toggle"></em>
+    </p>
+  </div>
+</footer>
+
+  </body>
+</html>

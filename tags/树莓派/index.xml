@@ -1,0 +1,17 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+	<channel>
+		<title>树莓派 on chemf</title>
+		<link>https://eoyohe.cn/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/</link>
+		<description>Recent content in 树莓派 </description>
+		<generator>Hugo -- gohugo.io</generator>
+		
+  		<language>en-us</language>
+		
+		<managingEditor>Page(/tags/树莓派)</managingEditor>
+    	
+  		<lastBuildDate>Mon, 13 Nov 2017 10:35:29 +0000</lastBuildDate>
+		
+		<atom:link href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" rel="self" type="application/rss+xml" />
+		
+	</channel>
+</rss>

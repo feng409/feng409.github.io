@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8" />
+<title>高匿，匿名，透明代理区别</title>
+<meta name="description" 
+      content=""
+>
+
+  
+
+
+
+
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link
+  rel="alternate"
+  type="application/rss+xml"
+  href="https://eoyohe.cn/index.xml"
+  title="chemf"
+/>
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="高匿，匿名，透明代理区别"/>
+<meta name="twitter:description" content="爬虫使用不同代理的区别"/>
+
+
+
+<link rel="stylesheet" href="https://eoyohe.cn/fontawesome/css/all.min.css" />
+
+
+
+
+<link
+  crossorigin="anonymous"
+  href="/css/styles.min.css"
+  integrity=""
+  rel="preload stylesheet"
+  as="style"
+/>
+
+
+
+
+<link
+  id="dark-mode-theme"
+  crossorigin="anonymous"
+  href="/css/dark.min.css"
+  integrity=""
+  rel="preload stylesheet"
+  as="style"
+/>
+
+
+<script>
+  var darkTheme = document.getElementById('dark-mode-theme')
+  var storedTheme = localStorage.getItem('dark-mode-storage')
+
+  if (storedTheme === 'dark') {
+    darkTheme.disabled = false
+  } else if (storedTheme === 'light') {
+    darkTheme.disabled = true
+  }
+</script>
+
+
+<script defer crossorigin="anonymous" src="/js/theme.js" integrity=""></script>
+
+
+<script defer crossorigin="anonymous" src="/js/instantpage.min.js" integrity=""></script><meta name="generator" content="Hugo 0.83.1" />
+  </head>
+  <body>
+    
+  
+
+
+
+
+  <header>
+    <nav class="navbar">
+  <div class="nav">
+    
+
+    <ul class="nav-links">
+      
+    </ul>
+  </div>
+</nav>
+
+    <div class="intro-header">
+      <div class="container">
+        <div class="posts-heading">
+          
+            <h1>
+              高匿，匿名，透明代理区别
+            </h1>
+          
+          
+        </div>
+      </div>
+    </div>
+  </header>
+  
+
+    
+  <div class="container" role="main">
+    <article class="article" class="blog-post">
+      
+  <p>HTTP代理按匿名度可分为透明代理、匿名代理和高度匿名代理。主要由 server 端收到的 http 请求的头部字段决定代理类型。</p>
+<table>
+<thead>
+<tr>
+<th>proxy/header</th>
+<th>REMOTE_ADDR</th>
+<th>HTTP_VIA</th>
+<th>HTTP_X_FORWARDED_FOR</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>透明代理</td>
+<td>代理服务器IP</td>
+<td>代理服务器IP</td>
+<td>真实客户端IP</td>
+</tr>
+<tr>
+<td>匿名代理</td>
+<td>代理服务器IP</td>
+<td>代理服务器IP</td>
+<td>代理服务器IP</td>
+</tr>
+<tr>
+<td>高匿代理</td>
+<td>代理服务器IP</td>
+<td>不显示</td>
+<td>不显示</td>
+</tr>
+</tbody>
+</table>
+<h2 id="透明代理">透明代理</h2>
+<p>使用透明代理，对方服务器可以知道你使用了代理，并且也知道你的真实IP。 透明代理访问对方服务器所带的HTTP头信息如下：</p>
+<p>REMOTE_ADDR = 代理服务器IP</p>
+<p>HTTP_VIA = 代理服务器IP</p>
+<p>HTTP_X_FORWARDED_FOR = 你的真实IP</p>
+<p>透明代理还是将你的真实IP发送给了对方服务器，因此无法达到隐藏身份的目的。</p>
+<h2 id="匿名代理">匿名代理</h2>
+<p>使用匿名代理，对方服务器可以知道你使用了代理，但不知道你的真实IP。匿名代理访问对方服务器所带的HTTP头信息如下：</p>
+<p>REMOTE_ADDR = 代理服务器IP</p>
+<p>HTTP_VIA = 代理服务器IP</p>
+<p>HTTP_X_FORWARDED_FOR = 代理服务器IP</p>
+<p>匿名代理隐藏了你的真实IP，但是向访问对象透露了你是使用代理服务器访问他们的。</p>
+<h2 id="高匿代理">高匿代理</h2>
+<p>使用高匿名代理，对方服务器不知道你使用了代理，更不知道你的真实IP。高匿名代理访问对方服务器所带的HTTP头信息如下：</p>
+<p>REMOTE_ADDR = 代理服务器IP</p>
+<p>HTTP_VIA 不显示</p>
+<p>HTTP_X_FORWARDED_FOR 不显示</p>
+<p>高匿名代理隐藏了你的真实IP，同时访问对象也不知道你使用了代理，因此隐蔽度最高。</p>
+
+
+
+
+      
+        <div class="blog-tags">
+          
+            <a
+              href="https://eoyohe.cn/tags/%E7%88%AC%E8%99%AB/"
+              >爬虫</a
+            >&nbsp;
+          
+        </div>
+      
+
+      
+    </article>
+    
+    
+      
+
+    
+  </div>
+
+    <footer>
+  
+
+<div class="social-icons">
+  
+
+  
+</div>
+
+
+  
+  <div class="container">
+    <p class="credits copyright">
+      <a href="https://eoyohe.cn/about"></a>
+      &nbsp;&copy;
+      2017 - 
+      2021
+      
+        &nbsp;/&nbsp;
+        <a href="https://eoyohe.cn/">粤ICP备2022033411号</a>
+      
+      &nbsp;&ndash;&nbsp;
+      <em class="fas fa-moon" id="dark-mode-toggle"></em>
+    </p>
+  </div>
+</footer>
+
+  </body>
+</html>

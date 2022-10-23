@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8" />
+<title>如何用 git 折磨同事</title>
+<meta name="description" 
+      content=""
+>
+
+  
+
+
+
+
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link
+  rel="alternate"
+  type="application/rss+xml"
+  href="https://eoyohe.cn/index.xml"
+  title="chemf"
+/>
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="如何用 git 折磨同事"/>
+<meta name="twitter:description" content="git 代码合并策略"/>
+
+
+
+<link rel="stylesheet" href="https://eoyohe.cn/fontawesome/css/all.min.css" />
+
+
+
+
+<link
+  crossorigin="anonymous"
+  href="/css/styles.min.css"
+  integrity=""
+  rel="preload stylesheet"
+  as="style"
+/>
+
+
+
+
+<link
+  id="dark-mode-theme"
+  crossorigin="anonymous"
+  href="/css/dark.min.css"
+  integrity=""
+  rel="preload stylesheet"
+  as="style"
+/>
+
+
+<script>
+  var darkTheme = document.getElementById('dark-mode-theme')
+  var storedTheme = localStorage.getItem('dark-mode-storage')
+
+  if (storedTheme === 'dark') {
+    darkTheme.disabled = false
+  } else if (storedTheme === 'light') {
+    darkTheme.disabled = true
+  }
+</script>
+
+
+<script defer crossorigin="anonymous" src="/js/theme.js" integrity=""></script>
+
+
+<script defer crossorigin="anonymous" src="/js/instantpage.min.js" integrity=""></script><meta name="generator" content="Hugo 0.83.1" />
+  </head>
+  <body>
+    
+  
+
+
+
+
+  <header>
+    <nav class="navbar">
+  <div class="nav">
+    
+
+    <ul class="nav-links">
+      
+    </ul>
+  </div>
+</nav>
+
+    <div class="intro-header">
+      <div class="container">
+        <div class="posts-heading">
+          
+            <h1>
+              如何用 git 折磨同事
+            </h1>
+          
+          
+        </div>
+      </div>
+    </div>
+  </header>
+  
+
+    
+  <div class="container" role="main">
+    <article class="article" class="blog-post">
+      
+  <p><strong>merge  代码的正确姿势</strong></p>
+<h2 id="前情铺垫">前情铺垫</h2>
+<p>这里就不讲 gitflow 的问题了，最最简单的场景，同事A 和 B，协同开发，假设分支名是 feature。两人共同在 feature  上提交代码。</p>
+<h3 id="初始化">初始化</h3>
+<p><img src="http://static.eoyohe.cn/blog/git_init.png" alt=""></p>
+<h3 id="b-君开了个分支写了一行b代码">B 君开了个分支，写了一行B代码</h3>
+<p><img src="http://static.eoyohe.cn/blog/git_checkout_b.png" alt=""></p>
+<h3 id="b-君告知a请求代码合并到公共分支上">B 君告知A，请求代码合并到公共分支上</h3>
+<p>A 一堆操作猛如虎</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">git checkout feature
+git merge -s ours func_b
+</code></pre></div><p>通知B君，我合并你代码了。</p>
+<h3 id="这时候-b-君一看我代码咋没了"><strong>这时候 B 君一看，我代码咋没了</strong></h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">😠 demo git:<span style="color:#f92672">(</span>feature<span style="color:#f92672">)</span> cat code
+😠 demo git:<span style="color:#f92672">(</span>feature<span style="color:#f92672">)</span> 
+</code></pre></div><p>再看一下 <code>git log</code></p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">😠 demo git:<span style="color:#f92672">(</span>feature<span style="color:#f92672">)</span> git log --oneline --decorate --graph
+*   846f001 <span style="color:#f92672">(</span>HEAD -&gt; feature<span style="color:#f92672">)</span> Merge branch <span style="color:#e6db74">&#39;func_b&#39;</span> into feature
+|<span style="color:#ae81ff">\\</span>
+| * 93972fb <span style="color:#f92672">(</span>func_b<span style="color:#f92672">)</span> code by b
+|/
+* 1c2b405 init
+</code></pre></div><p>没毛病，提交已经合并了。</p>
+<h3 id="要不自己再合一下"><strong>要不自己再合一下？</strong></h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">😡 demo git:<span style="color:#f92672">(</span>feature<span style="color:#f92672">)</span> git merge func_b
+Already up to date.
+</code></pre></div><p>完犊子，git 认为已经合并过了 ，不做处理。🤬</p>
+<h2 id="原理">原理</h2>
+<p>我们合并代码时候，是可以指定合并策略的。<code>recursive</code> 是默认的。</p>
+<ul>
+<li>resolve</li>
+<li>recursive</li>
+<li>octopus</li>
+<li>ours</li>
+<li>subtree</li>
+</ul>
+<p>划重点，<code>ours</code>  策略，即合并时候，不管别人做了什么，以我分支上的提交为主，丢弃掉别人的变动。</p>
+<p>对此 ，我们可以有很多操作坑队友</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ git merge --strategy<span style="color:#f92672">=</span>ours origin/master  <span style="color:#75715e"># 合并主干代码，但丢弃主干变动</span>
+$ git pull -s ours <span style="color:#75715e"># 拉取远程代码，并丢弃队友push的代码</span>
+</code></pre></div><h3 id="结尾">结尾</h3>
+<p>为啥我会看这些？因为我特么是被坑的那个🤬。</p>
+<p>由于太气了，所以就不好好介绍上述其他策略了，详见大佬文章</p>
+<p><a href="https://blog.walterlv.com/post/git-merge-strategy.html#resolve">git 合并策略</a></p>
+
+
+
+
+      
+        <div class="blog-tags">
+          
+            <a
+              href="https://eoyohe.cn/tags/git/"
+              >git</a
+            >&nbsp;
+          
+        </div>
+      
+
+      
+    </article>
+    
+    
+      
+
+    
+  </div>
+
+    <footer>
+  
+
+<div class="social-icons">
+  
+
+  
+</div>
+
+
+  
+  <div class="container">
+    <p class="credits copyright">
+      <a href="https://eoyohe.cn/about"></a>
+      &nbsp;&copy;
+      2017 - 
+      2021
+      
+        &nbsp;/&nbsp;
+        <a href="https://eoyohe.cn/">粤ICP备2022033411号</a>
+      
+      &nbsp;&ndash;&nbsp;
+      <em class="fas fa-moon" id="dark-mode-toggle"></em>
+    </p>
+  </div>
+</footer>
+
+  </body>
+</html>

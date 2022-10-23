@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8" />
+<title>odoo xml语法杂记</title>
+<meta name="description" 
+      content=""
+>
+
+  
+
+
+
+
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link
+  rel="alternate"
+  type="application/rss+xml"
+  href="https://eoyohe.cn/index.xml"
+  title="chemf"
+/>
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="odoo xml语法杂记"/>
+<meta name="twitter:description" content="odoo 难以理解的 xml 语法记录"/>
+
+
+
+<link rel="stylesheet" href="https://eoyohe.cn/fontawesome/css/all.min.css" />
+
+
+
+
+<link
+  crossorigin="anonymous"
+  href="/css/styles.min.css"
+  integrity=""
+  rel="preload stylesheet"
+  as="style"
+/>
+
+
+
+
+<link
+  id="dark-mode-theme"
+  crossorigin="anonymous"
+  href="/css/dark.min.css"
+  integrity=""
+  rel="preload stylesheet"
+  as="style"
+/>
+
+
+<script>
+  var darkTheme = document.getElementById('dark-mode-theme')
+  var storedTheme = localStorage.getItem('dark-mode-storage')
+
+  if (storedTheme === 'dark') {
+    darkTheme.disabled = false
+  } else if (storedTheme === 'light') {
+    darkTheme.disabled = true
+  }
+</script>
+
+
+<script defer crossorigin="anonymous" src="/js/theme.js" integrity=""></script>
+
+
+<script defer crossorigin="anonymous" src="/js/instantpage.min.js" integrity=""></script><meta name="generator" content="Hugo 0.83.1" />
+  </head>
+  <body>
+    
+  
+
+
+
+
+  <header>
+    <nav class="navbar">
+  <div class="nav">
+    
+
+    <ul class="nav-links">
+      
+    </ul>
+  </div>
+</nav>
+
+    <div class="intro-header">
+      <div class="container">
+        <div class="posts-heading">
+          
+            <h1>
+              odoo xml语法杂记
+            </h1>
+          
+          
+        </div>
+      </div>
+    </div>
+  </header>
+  
+
+    
+  <div class="container" role="main">
+    <article class="article" class="blog-post">
+      
+  <h1 id="odoo-xml语法杂记">odoo xml语法杂记</h1>
+<blockquote>
+<p>总结记录在odoo的xml中踩的坑</p>
+</blockquote>
+<ol>
+<li>
+<p>domain多条件过滤语法</p>
+<p>domain 使用 <em><a href="https://zh.wikipedia.org/wiki/%E6%B3%A2%E5%85%B0%E8%A1%A8%E7%A4%BA%E6%B3%95">波兰表示法</a></em></p>
+<blockquote>
+<p>以二元运算为例，从左至右读入表达式，遇到一个操作符后跟随两个操作数时，则计算之，然后将结果作为操作数替换这个操作符和两个操作数；重复此步骤，直至所有操作符处理完毕。</p>
+</blockquote>
+<p>eg. 计算顺序</p>
+<pre><code>['|','&amp;','|',a,b,c,'&amp;',d,e]
+['|','&amp;',(a | b),c,'&amp;',d,e]
+['|',((a | b) &amp; c),'&amp;',d,e]
+['|',((a | b) &amp; c),(d &amp; e)]
+[(((a | b) | c) | (d &amp; e))]
+</code></pre></li>
+<li>
+<p><strong>one2many</strong> , <strong>many2many</strong> 记录的关联选项</p>
+<p>情景：<em>sale.order</em> 表下有个 <strong>one2many</strong> 字段关联着 <em>sale.order.line</em>，现在为 order 添加一个 line 销售明细行。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">order<span style="color:#f92672">.</span>write({<span style="color:#e6db74">&#39;line_ids&#39;</span>: [(<span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">0</span>, {values})]})
+</code></pre></div><p>则将会用values创建一个line记录，并且关联到order中。</p>
+<p>具体语法：</p>
+<pre><code>(0, 0, { values }) 从给定的values创建一条记录 (create(values))
+(1, ID, { values }) 更新id=ID的记录值(调用write(values))
+(2,ID) 去除和id=ID的对象主从链接关系,并且删除这个对象（调用unlink方法）
+(3,ID)去除和id=ID的对象主从链接关系,但是不删除这个对象
+(4,ID)添加主从链接关系到id=ID的对象。
+(5) 去除所有的链接关系,也就是循环所有的从数据且调用(3,ID)
+(6,0,[IDs]) 用IDs里面的记录替换原来链接的记录，即先执行(5)再循环IDs执行（4,I
+</code></pre></li>
+<li>
+<p><strong>one2many</strong>, <strong>many2many</strong> 字段禁止禁止创建按钮：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-xml" data-lang="xml"><span style="color:#f92672">&lt;field</span> <span style="color:#a6e22e">name=</span><span style="color:#e6db74">&#34;field_name&#34;</span> <span style="color:#a6e22e">options=</span><span style="color:#e6db74">&#34;{&#39;no_create&#39;: True}&#34;</span><span style="color:#f92672">/&gt;</span>
+</code></pre></div></li>
+<li>
+<p><strong>ref</strong> 和 <strong>eval</strong> 语法：</p>
+<ul>
+<li><strong>eval</strong> :把eval的值通过作为python运算返回该属性</li>
+<li><strong>ref</strong> :视图的方法，根据 module_name.xml_id 返回数据库id
+example:
+由于每个view，action都是一个数据库的record，因此可以使用继承inhertit_id继承并用 <strong>ref</strong> 查找该record</li>
+</ul>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-xml" data-lang="xml"><span style="color:#f92672">&lt;record</span> <span style="color:#a6e22e">id=</span><span style="color:#e6db74">&#34;view_partner_tree&#34;</span> <span style="color:#a6e22e">model=</span><span style="color:#e6db74">&#34;ir.ui.view&#34;</span><span style="color:#f92672">&gt;</span>
+<span style="color:#f92672">&lt;field</span> <span style="color:#a6e22e">name=</span><span style="color:#e6db74">&#34;name&#34;</span><span style="color:#f92672">&gt;</span>res.partner.form<span style="color:#f92672">&lt;/field&gt;</span>
+<span style="color:#f92672">&lt;field</span> <span style="color:#a6e22e">name=</span><span style="color:#e6db74">&#34;model&#34;</span><span style="color:#f92672">&gt;</span>res.partner<span style="color:#f92672">&lt;/field&gt;</span>
+<span style="color:#f92672">&lt;field</span> <span style="color:#a6e22e">name=</span><span style="color:#e6db74">&#34;inherit_id&#34;</span> <span style="color:#a6e22e">ref=</span><span style="color:#e6db74">&#34;base.view_partner_tree&#34;</span><span style="color:#f92672">/&gt;</span>
+<span style="color:#f92672">&lt;field</span> <span style="color:#a6e22e">name=</span><span style="color:#e6db74">&#34;arch&#34;</span> <span style="color:#a6e22e">type=</span><span style="color:#e6db74">&#34;xml&#34;</span><span style="color:#f92672">&gt;</span>
+    <span style="color:#f92672">&lt;field</span> <span style="color:#a6e22e">name=</span><span style="color:#e6db74">&#34;tomorrow&#34;</span> <span style="color:#a6e22e">eval=</span><span style="color:#e6db74">&#34;(DateTime.now() + timedelta(days=1)).strftime(&#39;%Y-%m-%d %H:%M:%S&#39;)&#34;</span> <span style="color:#f92672">/&gt;</span>    
+<span style="color:#f92672">&lt;/field&gt;</span>
+</code></pre></div></li>
+<li>
+<p>控制xml文件只在安装时执行，防止多次升级覆盖数据：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-xml" data-lang="xml"><span style="color:#f92672">&lt;odoo&gt;</span>
+    <span style="color:#f92672">&lt;data</span> <span style="color:#a6e22e">noupdate=</span><span style="color:#e6db74">&#34;1&#34;</span><span style="color:#f92672">&gt;</span>...<span style="color:#f92672">&lt;/data&gt;</span>
+<span style="color:#f92672">&lt;/odoo&gt;</span>
+</code></pre></div></li>
+<li>
+<p>在xml中设置model相关field的默认值
+使用 <code>default_</code> 前缀</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-xml" data-lang="xml"><span style="color:#f92672">&lt;record</span> <span style="color:#a6e22e">id=</span><span style="color:#e6db74">&#34;action_specimen_orders&#34;</span> <span style="color:#a6e22e">model=</span><span style="color:#e6db74">&#34;ir.actions.act_window&#34;</span><span style="color:#f92672">&gt;</span>
+    <span style="color:#f92672">&lt;field</span> <span style="color:#a6e22e">name=</span><span style="color:#e6db74">&#34;type&#34;</span><span style="color:#f92672">&gt;</span>ir.actions.act_window<span style="color:#f92672">&lt;/field&gt;</span>
+    <span style="color:#f92672">&lt;field</span> <span style="color:#a6e22e">name=</span><span style="color:#e6db74">&#34;view_type&#34;</span><span style="color:#f92672">&gt;</span>form<span style="color:#f92672">&lt;/field&gt;</span>
+    <span style="color:#f92672">&lt;field</span> <span style="color:#a6e22e">name=</span><span style="color:#e6db74">&#34;view_mode&#34;</span><span style="color:#f92672">&gt;</span>tree,form<span style="color:#f92672">&lt;/field&gt;</span>
+    <span style="color:#f92672">&lt;field</span> <span style="color:#a6e22e">name=</span><span style="color:#e6db74">&#34;context&#34;</span><span style="color:#f92672">&gt;</span>{&#39;default_field_name&#39;: field_value}<span style="color:#f92672">&lt;/field&gt;</span>
+<span style="color:#f92672">&lt;/record&gt;</span>
+</code></pre></div></li>
+<li>
+<p>控制xml文件只在安装时执行，防止多次升级覆盖数据：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-xml" data-lang="xml"><span style="color:#f92672">&lt;odoo&gt;</span>
+    <span style="color:#f92672">&lt;data</span> <span style="color:#a6e22e">noupdate=</span><span style="color:#e6db74">&#34;1&#34;</span><span style="color:#f92672">&gt;</span>...<span style="color:#f92672">&lt;/data&gt;</span>
+<span style="color:#f92672">&lt;/odoo&gt;</span>
+</code></pre></div></li>
+<li>
+<p>创建用户权限分组：</p>
+<p>odoo是数据驱动的框架，因此对于权限分组，实则是将用户分组，因此需要先创建一个分组，这里使用xml创建一个record。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-xml" data-lang="xml"><span style="color:#75715e">&lt;!-- 新建一个分组标签 --&gt;</span>
+<span style="color:#f92672">&lt;record</span> <span style="color:#a6e22e">model=</span><span style="color:#e6db74">&#34;ir.module.category&#34;</span> <span style="color:#a6e22e">id=</span><span style="color:#e6db74">&#34;module_category_test&#34;</span><span style="color:#f92672">&gt;</span>
+    <span style="color:#f92672">&lt;field</span> <span style="color:#a6e22e">name=</span><span style="color:#e6db74">&#34;name&#34;</span><span style="color:#f92672">&gt;</span>测试<span style="color:#f92672">&lt;/field&gt;</span>
+<span style="color:#f92672">&lt;/record&gt;</span>
+<span style="color:#75715e">&lt;!-- 新建一个分组 --&gt;</span>
+<span style="color:#f92672">&lt;record</span> <span style="color:#a6e22e">id=</span><span style="color:#e6db74">&#34;base.group_hr_manager&#34;</span> <span style="color:#a6e22e">model=</span><span style="color:#e6db74">&#34;res.groups&#34;</span><span style="color:#f92672">&gt;</span>
+    <span style="color:#f92672">&lt;field</span> <span style="color:#a6e22e">name=</span><span style="color:#e6db74">&#34;name&#34;</span><span style="color:#f92672">&gt;</span>Manager<span style="color:#f92672">&lt;/field&gt;</span>
+    <span style="color:#f92672">&lt;field</span> <span style="color:#a6e22e">name=</span><span style="color:#e6db74">&#34;comment&#34;</span><span style="color:#f92672">&gt;</span>the user will have an access to the human resources configuration as well as statistic reports.<span style="color:#f92672">&lt;/field&gt;</span>
+    <span style="color:#f92672">&lt;field</span> <span style="color:#a6e22e">name=</span><span style="color:#e6db74">&#34;category_id&#34;</span> <span style="color:#a6e22e">ref=</span><span style="color:#e6db74">&#34;base.module_category_human_resources&#34;</span><span style="color:#f92672">/&gt;</span>
+    <span style="color:#f92672">&lt;field</span> <span style="color:#a6e22e">name=</span><span style="color:#e6db74">&#34;implied_ids&#34;</span> <span style="color:#a6e22e">eval=</span><span style="color:#e6db74">&#34;[(4, ref(&#39;base.group_hr_user&#39;))]&#34;</span><span style="color:#f92672">/&gt;</span>
+    <span style="color:#f92672">&lt;field</span> <span style="color:#a6e22e">name=</span><span style="color:#e6db74">&#34;users&#34;</span> <span style="color:#a6e22e">eval=</span><span style="color:#e6db74">&#34;[(4, ref(&#39;base.user_root&#39;))]&#34;</span><span style="color:#f92672">/&gt;</span>
+<span style="color:#f92672">&lt;/record&gt;</span>
+<span style="color:#75715e">&lt;!--
+</span><span style="color:#75715e">@name:用户组名，这个或以翻译的
+</span><span style="color:#75715e">@comment:用户组的注释
+</span><span style="color:#75715e">@category_id 用户组所属的模块名
+</span><span style="color:#75715e">@implied_ids 基于哪个用户组，这个层级关系 &lt;field name=&#34;implied_ids&#34; eval=&#34;[(4, ref(&#39;base.group_user&#39;))]&#34;/&gt;是最基础的
+</span><span style="color:#75715e">用户名，最初是基于这个，后面一层一层递增，像上面 base.group_hr_user 定义时就是基于最基础
+</span><span style="color:#75715e">@users 预设用户属于这个用户组
+</span><span style="color:#75715e">--&gt;</span>
+</code></pre></div><p>当创建好分组了后，即可在各个方面使用该分组。</p>
+<p>以下是创建一个过滤规则，针对users过滤，并且只有该分组内的用户才可以看得到</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-xml" data-lang="xml"><span style="color:#f92672">&lt;record</span> <span style="color:#a6e22e">model=</span><span style="color:#e6db74">&#34;ir.rule&#34;</span> <span style="color:#a6e22e">id=</span><span style="color:#e6db74">&#34;rule1&#34;</span><span style="color:#f92672">&gt;</span>
+<span style="color:#f92672">&lt;field</span> <span style="color:#a6e22e">name=</span><span style="color:#e6db74">&#34;name&#34;</span><span style="color:#f92672">&gt;</span>rule1<span style="color:#f92672">&lt;/field&gt;</span>
+<span style="color:#f92672">&lt;field</span> <span style="color:#a6e22e">name=</span><span style="color:#e6db74">&#34;model_id&#34;</span> <span style="color:#a6e22e">ref=</span><span style="color:#e6db74">&#34;model_res_users&#34;</span><span style="color:#f92672">/&gt;</span>
+<span style="color:#f92672">&lt;field</span> <span style="color:#a6e22e">name=</span><span style="color:#e6db74">&#34;global&#34;</span> <span style="color:#a6e22e">eval=</span><span style="color:#e6db74">&#34;True&#34;</span><span style="color:#f92672">/&gt;</span>
+<span style="color:#f92672">&lt;field</span> <span style="color:#a6e22e">name=</span><span style="color:#e6db74">&#34;domain_force&#34;</span><span style="color:#f92672">&gt;</span>[1,’=’,1]<span style="color:#f92672">&lt;/field&gt;</span>
+<span style="color:#f92672">&lt;field</span> <span style="color:#a6e22e">name=</span><span style="color:#e6db74">&#34;groups&#34;</span> <span style="color:#a6e22e">eval=</span><span style="color:#e6db74">&#34;[(4,ref(&#39;base.group_hr_manager&#39;))]&#34;</span><span style="color:#f92672">/&gt;</span>
+<span style="color:#f92672">&lt;/record&gt;</span>
+<span style="color:#75715e">&lt;!--name: 规则名称--&gt;</span>
+<span style="color:#75715e">&lt;!--model_id: 对应的模型--&gt;</span>
+<span style="color:#75715e">&lt;!--global: 是否是全局--&gt;</span>
+<span style="color:#75715e">&lt;!--domain_force: 过滤条件--&gt;</span>
+<span style="color:#75715e">&lt;!--groups: 属于哪个组--&gt;</span>
+</code></pre></div><p>以下是针对menuitem只有特定用户显示</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-xml" data-lang="xml"><span style="color:#f92672">&lt;menuitem</span> <span style="color:#a6e22e">id=</span><span style="color:#e6db74">&#34;menu_manage&#34;</span> <span style="color:#a6e22e">name=</span><span style="color:#e6db74">&#34;manager&#34;</span> <span style="color:#a6e22e">groups=</span><span style="color:#e6db74">&#34;base.group_hr_manager&#34;</span><span style="color:#f92672">/&gt;</span>
+</code></pre></div></li>
+</ol>
+
+
+
+
+      
+        <div class="blog-tags">
+          
+            <a
+              href="https://eoyohe.cn/tags/python/"
+              >python</a
+            >&nbsp;
+          
+            <a
+              href="https://eoyohe.cn/tags/odoo/"
+              >odoo</a
+            >&nbsp;
+          
+        </div>
+      
+
+      
+    </article>
+    
+    
+      
+
+    
+  </div>
+
+    <footer>
+  
+
+<div class="social-icons">
+  
+
+  
+</div>
+
+
+  
+  <div class="container">
+    <p class="credits copyright">
+      <a href="https://eoyohe.cn/about"></a>
+      &nbsp;&copy;
+      2017 - 
+      2021
+      
+        &nbsp;/&nbsp;
+        <a href="https://eoyohe.cn/">粤ICP备2022033411号</a>
+      
+      &nbsp;&ndash;&nbsp;
+      <em class="fas fa-moon" id="dark-mode-toggle"></em>
+    </p>
+  </div>
+</footer>
+
+  </body>
+</html>

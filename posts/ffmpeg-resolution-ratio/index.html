@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8" />
+<title>ffmpeg调整分辨率height not divisible by 2问题解决</title>
+<meta name="description" 
+      content=""
+>
+
+  
+
+
+
+
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link
+  rel="alternate"
+  type="application/rss+xml"
+  href="https://eoyohe.cn/index.xml"
+  title="chemf"
+/>
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="ffmpeg调整分辨率height not divisible by 2问题解决"/>
+<meta name="twitter:description" content="ffmpeg 用法记录"/>
+
+
+
+<link rel="stylesheet" href="https://eoyohe.cn/fontawesome/css/all.min.css" />
+
+
+
+
+<link
+  crossorigin="anonymous"
+  href="/css/styles.min.css"
+  integrity=""
+  rel="preload stylesheet"
+  as="style"
+/>
+
+
+
+
+<link
+  id="dark-mode-theme"
+  crossorigin="anonymous"
+  href="/css/dark.min.css"
+  integrity=""
+  rel="preload stylesheet"
+  as="style"
+/>
+
+
+<script>
+  var darkTheme = document.getElementById('dark-mode-theme')
+  var storedTheme = localStorage.getItem('dark-mode-storage')
+
+  if (storedTheme === 'dark') {
+    darkTheme.disabled = false
+  } else if (storedTheme === 'light') {
+    darkTheme.disabled = true
+  }
+</script>
+
+
+<script defer crossorigin="anonymous" src="/js/theme.js" integrity=""></script>
+
+
+<script defer crossorigin="anonymous" src="/js/instantpage.min.js" integrity=""></script><meta name="generator" content="Hugo 0.83.1" />
+  </head>
+  <body>
+    
+  
+
+
+
+
+  <header>
+    <nav class="navbar">
+  <div class="nav">
+    
+
+    <ul class="nav-links">
+      
+    </ul>
+  </div>
+</nav>
+
+    <div class="intro-header">
+      <div class="container">
+        <div class="posts-heading">
+          
+            <h1>
+              ffmpeg调整分辨率height not divisible by 2问题解决
+            </h1>
+          
+          
+        </div>
+      </div>
+    </div>
+  </header>
+  
+
+    
+  <div class="container" role="main">
+    <article class="article" class="blog-post">
+      
+  <h2 id="问题">问题</h2>
+<p>调整视频分辨率时候，以下命令</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">ffmpeg -i a.mp4 -y -c:v libx264 -movflags +faststart -vf scale<span style="color:#f92672">=</span>640:-1 -c:a copy b.mp4
+</code></pre></div><ul>
+<li>
+<p>-i 表示输入视频</p>
+</li>
+<li>
+<p>-y 不询问，默认执行</p>
+</li>
+<li>
+<p>-c:v libx264 指定编解码器为 x264</p>
+</li>
+<li>
+<p>-movflags +faststart 输出为 fragment MP4</p>
+</li>
+<li>
+<p>-vf 使用视频滤镜</p>
+</li>
+<li>
+<p>scale=640:-1 缩放视频，宽度为640，高度按原宽高比例自适应</p>
+</li>
+<li>
+<p>-c:a copy 复制音频</p>
+</li>
+</ul>
+<p>执行后报错:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">ffmpeg version 4.1.4 Copyright <span style="color:#f92672">(</span>c<span style="color:#f92672">)</span> 2000-2019 the FFmpeg developers
+  built with Apple LLVM version 10.0.1 <span style="color:#f92672">(</span>clang-1001.0.46.4<span style="color:#f92672">)</span>
+  configuration: --prefix<span style="color:#f92672">=</span>/usr/local/Cellar/ffmpeg/4.1.4_1 --enable-shared --enable-pthreads --enable-version3 --enable-avresample --cc<span style="color:#f92672">=</span>clang --host-cflags<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;-I/Library/Java/JavaVirtualMachines/adoptopenjdk-12.0.1.jdk/Contents/Home/include -I/Library/Java/JavaVirtualMachines/adoptopenjdk-12.0.1.jdk/Contents/Home/include/darwin&#39;</span> --host-ldflags<span style="color:#f92672">=</span> --enable-ffplay --enable-gnutls --enable-gpl --enable-libaom --enable-libbluray --enable-libmp3lame --enable-libopus --enable-librubberband --enable-libsnappy --enable-libtesseract --enable-libtheora --enable-libvorbis --enable-libvpx --enable-libx264 --enable-libx265 --enable-libxvid --enable-lzma --enable-libfontconfig --enable-libfreetype --enable-frei0r --enable-libass --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopenjpeg --enable-librtmp --enable-libspeex --enable-videotoolbox --disable-libjack --disable-indev<span style="color:#f92672">=</span>jack --enable-libaom --enable-libsoxr
+  libavutil      56. 22.100 / 56. 22.100
+  libavcodec     58. 35.100 / 58. 35.100
+  libavformat    58. 20.100 / 58. 20.100
+  libavdevice    58.  5.100 / 58.  5.100
+  libavfilter     7. 40.101 /  7. 40.101
+  libavresample   4.  0.  <span style="color:#ae81ff">0</span> /  4.  0.  <span style="color:#ae81ff">0</span>
+  libswscale      5.  3.100 /  5.  3.100
+  libswresample   3.  3.100 /  3.  3.100
+  libpostproc    55.  3.100 / 55.  3.100
+Input <span style="color:#75715e">#0, mov,mp4,m4a,3gp,3g2,mj2, from &#39;a.mp4&#39;:</span>
+  Metadata:
+    major_brand     : isom
+    minor_version   : <span style="color:#ae81ff">512</span>
+    compatible_brands: isomiso2avc1mp41
+    encoder         : Lavf54.20.4
+  Duration: 00:03:19.12, start: 0.000000, bitrate: <span style="color:#ae81ff">2612</span> kb/s
+    Stream <span style="color:#75715e">#0:0(und): Video: h264 (High) (avc1 / 0x31637661), yuv420p, 1280x654 [SAR 1:1 DAR 640:327], 2417 kb/s, 25 fps, 25 tbr, 12800 tbn, 50 tbc (default)</span>
+    Metadata:
+      handler_name    : VideoHandler
+    Stream <span style="color:#75715e">#0:1(und): Audio: aac (LC) (mp4a / 0x6134706D), 48000 Hz, stereo, fltp, 188 kb/s (default)</span>
+    Metadata:
+      handler_name    : SoundHandler
+Stream mapping:
+  Stream <span style="color:#75715e">#0:0 -&gt; #0:0 (h264 (native) -&gt; h264 (libx264))</span>
+  Stream <span style="color:#75715e">#0:1 -&gt; #0:1 (copy)</span>
+Press <span style="color:#f92672">[</span>q<span style="color:#f92672">]</span> to stop, <span style="color:#f92672">[</span>?<span style="color:#f92672">]</span> <span style="color:#66d9ef">for</span> help
+<span style="color:#f92672">[</span>libx264 @ 0x7fc73d804600<span style="color:#f92672">]</span> height not divisible by <span style="color:#ae81ff">2</span> <span style="color:#f92672">(</span>640x327<span style="color:#f92672">)</span>
+Error initializing output stream 0:0 -- Error <span style="color:#66d9ef">while</span> opening encoder <span style="color:#66d9ef">for</span> output stream <span style="color:#75715e">#0:0 - maybe incorrect parameters such as bit_rate, rate, width or height</span>
+Conversion failed!
+</code></pre></div><h2 id="解决">解决</h2>
+<p>问题在于  <code>height not divisible by 2</code></p>
+<p>原视频的分辨率为 <code>1280x654</code></p>
+<p>自适应缩放到640后为 <code>640x327</code></p>
+<p>查资料发现 x264 编解码器要求视频的分辨率都是偶数。</p>
+<p>因此，ffmpeg的命令修改为</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">ffmpeg -i a.mp4 -y -c:v libx264 -movflags +faststart -vf scale<span style="color:#f92672">=</span>640:-2 -c:a copy b.mp4
+</code></pre></div><p>主要为 scale 修改为 640:-2</p>
+<p>根据<a href="https://ffmpeg.org/ffmpeg-filters.html#scale">官网文档介绍</a></p>
+<blockquote>
+<p>If one and only one of the values is -n with n &gt;= 1, the scale filter will use a value that maintains the aspect ratio of the input image, calculated from the other specified dimension. After that it will, however, make sure that the calculated dimension is divisible by n and adjust the value if necessary.</p>
+</blockquote>
+<p>如果宽高值设置为负数，则表示对应的值取按比例缩放后的自适应值，且能被n整除。</p>
+<p>因此，取 <code>640:-2</code> 表示宽度为640，高度自适应后能被2整除的值。则为 <code>640x328</code></p>
+
+
+
+
+      
+
+      
+    </article>
+    
+    
+      
+
+    
+  </div>
+
+    <footer>
+  
+
+<div class="social-icons">
+  
+
+  
+</div>
+
+
+  
+  <div class="container">
+    <p class="credits copyright">
+      <a href="https://eoyohe.cn/about"></a>
+      &nbsp;&copy;
+      2017 - 
+      2021
+      
+        &nbsp;/&nbsp;
+        <a href="https://eoyohe.cn/">粤ICP备2022033411号</a>
+      
+      &nbsp;&ndash;&nbsp;
+      <em class="fas fa-moon" id="dark-mode-toggle"></em>
+    </p>
+  </div>
+</footer>
+
+  </body>
+</html>

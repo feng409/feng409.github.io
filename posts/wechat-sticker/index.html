@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8" />
+<title>微信表情包电脑备份</title>
+<meta name="description" 
+      content=""
+>
+
+  
+
+
+
+
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link
+  rel="alternate"
+  type="application/rss+xml"
+  href="https://eoyohe.cn/index.xml"
+  title="chemf"
+/>
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="微信表情包电脑备份"/>
+<meta name="twitter:description" content="记录一次 windows 下微信表情包提取"/>
+
+
+
+<link rel="stylesheet" href="https://eoyohe.cn/fontawesome/css/all.min.css" />
+
+
+
+
+<link
+  crossorigin="anonymous"
+  href="/css/styles.min.css"
+  integrity=""
+  rel="preload stylesheet"
+  as="style"
+/>
+
+
+
+
+<link
+  id="dark-mode-theme"
+  crossorigin="anonymous"
+  href="/css/dark.min.css"
+  integrity=""
+  rel="preload stylesheet"
+  as="style"
+/>
+
+
+<script>
+  var darkTheme = document.getElementById('dark-mode-theme')
+  var storedTheme = localStorage.getItem('dark-mode-storage')
+
+  if (storedTheme === 'dark') {
+    darkTheme.disabled = false
+  } else if (storedTheme === 'light') {
+    darkTheme.disabled = true
+  }
+</script>
+
+
+<script defer crossorigin="anonymous" src="/js/theme.js" integrity=""></script>
+
+
+<script defer crossorigin="anonymous" src="/js/instantpage.min.js" integrity=""></script><meta name="generator" content="Hugo 0.83.1" />
+  </head>
+  <body>
+    
+  
+
+
+
+
+  <header>
+    <nav class="navbar">
+  <div class="nav">
+    
+
+    <ul class="nav-links">
+      
+    </ul>
+  </div>
+</nav>
+
+    <div class="intro-header">
+      <div class="container">
+        <div class="posts-heading">
+          
+            <h1>
+              微信表情包电脑备份
+            </h1>
+          
+          
+        </div>
+      </div>
+    </div>
+  </header>
+  
+
+    
+  <div class="container" role="main">
+    <article class="article" class="blog-post">
+      
+  <h3 id="起因">起因：</h3>
+<p>一次偶然用Windows的情况下，登录微信后发现微信的表情包自动同步后在<code>文档/WeChat Files/账号/CustomEmotions</code>下，文件名是32位字母数字组合.
+<img src="/img/%E5%BE%AE%E4%BF%A1_1.png" alt=""></p>
+<h3 id="简单还原图片">简单还原图片:</h3>
+<p>进入当前文件夹下的cmd窗口，执行批量重命名命令</p>
+<pre><code class="language-dos" data-lang="dos"> ren &quot;*&quot; &quot;*.jpg&quot;
+</code></pre><blockquote>
+<p>参数详解:</p>
+</blockquote>
+<ul>
+<li>ren 批量重命名命令</li>
+<li>&ldquo;*&rdquo; 匹配所有文件</li>
+<li>&ldquo;*.jpg&rdquo; 重命名所有文件加后缀名.jpg</li>
+</ul>
+<p>效果如下：<img src="/img/%E5%BE%AE%E4%BF%A1_2.png" alt=""></p>
+<h3 id="识别gif并自动根绝文件类型重命名">识别gif并自动根绝文件类型重命名</h3>
+<p>从上面的示例可以看出，这些没有文件后缀的文件其实是某一类型的文件。因此表情包除了静态图还有动态图，把动态图命名为jpg静态图无疑是不好的。因此，需要自动识别命名gif图。<br>
+<del>事实上，文件名后缀只是作为操作系统识别文件的一种标志，并不能改变文件内部的信息。扩展名为jpg的文件也可能是一个扩展为sh的脚本文件。扯远了</del></p>
+<p>在Linux下，file命令可以自动识别文件的类型。</p>
+<p><img src="/img/%E5%BE%AE%E4%BF%A1_3.png" alt="">
+没错，这里是要用这个命令来重命名。简单写了个Python脚本如下：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#e6db74">&#39;&#39;&#39;
+</span><span style="color:#e6db74"># =============================================================================
+</span><span style="color:#e6db74">#      FileName: rename.py
+</span><span style="color:#e6db74">#          Desc: 根据文件类型自动文件名加后缀文件类型
+</span><span style="color:#e6db74">#        Author: chemf
+</span><span style="color:#e6db74">#         Email: chemf01@163.com
+</span><span style="color:#e6db74">#      HomePage: 
+</span><span style="color:#e6db74">#       Version: 0.0.1
+</span><span style="color:#e6db74">#    LastChange: 2017-07-23 23:34:14
+</span><span style="color:#e6db74">#       History:
+</span><span style="color:#e6db74"># =============================================================================
+</span><span style="color:#e6db74">&#39;&#39;&#39;</span>
+<span style="color:#f92672">import</span> os
+
+data <span style="color:#f92672">=</span> os<span style="color:#f92672">.</span>popen(<span style="color:#e6db74">&#39;file `ls`&#39;</span>)<span style="color:#75715e">#列出当前目录下的所有文件的文件类型</span>
+pwd <span style="color:#f92672">=</span> os<span style="color:#f92672">.</span>getcwd()
+<span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> data:
+    old_name <span style="color:#f92672">=</span> i<span style="color:#f92672">.</span>split()[<span style="color:#ae81ff">0</span>][:<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>]
+    new_name <span style="color:#f92672">=</span> old_name <span style="color:#f92672">+</span> <span style="color:#e6db74">&#39;.&#39;</span> <span style="color:#f92672">+</span> i<span style="color:#f92672">.</span>split()[<span style="color:#ae81ff">1</span>]
+    os<span style="color:#f92672">.</span>rename(os<span style="color:#f92672">.</span>path<span style="color:#f92672">.</span>join(pwd, old_name), os<span style="color:#f92672">.</span>path<span style="color:#f92672">.</span>join(pwd, new_name))
+</code></pre></div><p>把脚本放到<code>CustomEmotions</code>目录下并执行<code>python3 rename.py</code>即可</p>
+<blockquote>
+<p>存在问题，脚本是Linux下的，需要Linux环境。。。不管了。大不了用Windows下的<strong>windows subsystem for linux</strong>吧</p>
+</blockquote>
+
+
+
+
+      
+        <div class="blog-tags">
+          
+            <a
+              href="https://eoyohe.cn/tags/%E9%97%B2%E6%89%AF/"
+              >闲扯</a
+            >&nbsp;
+          
+        </div>
+      
+
+      
+    </article>
+    
+    
+      
+
+    
+  </div>
+
+    <footer>
+  
+
+<div class="social-icons">
+  
+
+  
+</div>
+
+
+  
+  <div class="container">
+    <p class="credits copyright">
+      <a href="https://eoyohe.cn/about"></a>
+      &nbsp;&copy;
+      2017 - 
+      2021
+      
+        &nbsp;/&nbsp;
+        <a href="https://eoyohe.cn/">粤ICP备2022033411号</a>
+      
+      &nbsp;&ndash;&nbsp;
+      <em class="fas fa-moon" id="dark-mode-toggle"></em>
+    </p>
+  </div>
+</footer>
+
+  </body>
+</html>
